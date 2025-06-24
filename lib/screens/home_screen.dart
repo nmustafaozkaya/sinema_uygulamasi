@@ -3,6 +3,7 @@ import 'package:sinema_uygulamasi/components/auto_ImageSlider.dart';
 import 'package:sinema_uygulamasi/components/user.dart';
 import 'package:sinema_uygulamasi/components/movies.dart';
 import 'package:sinema_uygulamasi/screens/movie_details.dart';
+import 'package:sinema_uygulamasi/screens/movies_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final User currentUser;
@@ -29,37 +30,63 @@ class HomeScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const Text(
-          'List of Movies',
-          style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 10.0),
+              child: Text(
+                'Now Showing Movies',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const moviesScreen()),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.only(right: 20.0),
+                child: Text(
+                  'All',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ],
         ),
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: FutureBuilder<List<Movie>>(
-            future: fetchMovies(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(child: Text("Hata: ${snapshot.error}"));
-              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text("Film bulunamadı."));
-              } else {
-                final movies = snapshot.data!;
-
-                return GridView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
+        const SizedBox(height: 10),
+        FutureBuilder<List<Movie>>(
+          future: fetchMovies(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const SizedBox(
+                height: 180,
+                child: Center(child: CircularProgressIndicator()),
+              );
+            } else if (snapshot.hasError) {
+              return SizedBox(
+                height: 180,
+                child: Center(child: Text("Hata: ${snapshot.error}")),
+              );
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const SizedBox(
+                height: 180,
+                child: Center(child: Text("Film bulunamadı.")),
+              );
+            } else {
+              final movies = snapshot.data!;
+              return SizedBox(
+                height: 180,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
                   itemCount: movies.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                    childAspectRatio: 0.65,
-                  ),
                   itemBuilder: (context, index) {
                     final movie = movies[index];
-                    return InkWell(
+                    return GestureDetector(
                       onTap: () {
                         Navigator.push(
                           context,
@@ -69,43 +96,20 @@ class HomeScreen extends StatelessWidget {
                           ),
                         );
                       },
-                      child: Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(
-                              child: ClipRRect(
-                                borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(12),
-                                ),
-                                child: buildMoviePoster(movie.poster),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                movie.title,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.center,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
+                      child: Container(
+                        width: 120,
+                        margin: const EdgeInsets.only(right: 12),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: buildMoviePoster(movie.poster),
                         ),
                       ),
                     );
                   },
-                );
-              }
-            },
-          ),
+                ),
+              );
+            }
+          },
         ),
       ],
     );
@@ -143,7 +147,7 @@ class HomeScreen extends StatelessWidget {
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: Align(
-              alignment: Alignment.centerLeft,
+              alignment: Alignment.bottomLeft,
               child: Text(
                 'Explore Movies',
                 style: TextStyle(
@@ -171,27 +175,24 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           children: [
             Container(
-              height: 120.0,
+              height: 150.0,
               width: double.infinity,
               color: Colors.lightBlueAccent.shade100,
-              child: Align(
-                alignment: Alignment
-                    .bottomLeft, // Align the padded image to bottom-left
-                child: Padding(
-                  // Wrap the Image with Padding for top margin
-                  padding: const EdgeInsets.only(
-                    top: 20.0,
-                  ), // Adjust this value for desired top "margin"
-                  child: Image.asset(
-                    'assets/images/logox.png',
-                    fit: BoxFit.contain,
-                  ),
-                ),
+              padding: const EdgeInsets.only(
+                left: 16.0,
+                top: 16.0,
+                bottom: 8.0,
+              ),
+              alignment: Alignment.bottomLeft,
+              child: Image.asset(
+                'assets/images/logox.png',
+                height: 60,
+                fit: BoxFit.contain,
               ),
             ),
             Expanded(
               child: ListView(
-                physics: const ClampingScrollPhysics(),
+                padding: EdgeInsets.zero,
                 children: [
                   ListTile(
                     leading: const Icon(Icons.place),
