@@ -40,4 +40,6 @@ class AppTextStyle {
     color: Colors.black,
     fontWeight: FontWeight.bold,
   );
+
+  static const BASIC_HEADER_ = TextStyle(color: Colors.black, fontSize: 18);
 }

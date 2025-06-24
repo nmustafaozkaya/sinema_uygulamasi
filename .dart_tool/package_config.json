@@ -254,6 +254,12 @@
       "languageVersion": "3.7"
     },
     {
+      "name": "smooth_page_indicator",
+      "rootUri": "file:///Users/melikeiremozkaya/.pub-cache/hosted/pub.dev/smooth_page_indicator-1.2.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "source_span",
       "rootUri": "file:///Users/melikeiremozkaya/.pub-cache/hosted/pub.dev/source_span-1.10.1",
       "packageUri": "lib/",

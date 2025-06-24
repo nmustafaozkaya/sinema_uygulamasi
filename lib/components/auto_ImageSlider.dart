@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class AutoImageSlider extends StatefulWidget {
   const AutoImageSlider({super.key});
@@ -45,22 +46,38 @@ class _AutoImageSliderState extends State<AutoImageSlider> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 250,
-      width: double.infinity,
-      child: PageView.builder(
-        controller: _pageController,
-        itemCount: images.length,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Image.asset(images[index], fit: BoxFit.cover),
-            ),
-          );
-        },
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: 250,
+          width: double.infinity,
+          child: PageView.builder(
+            controller: _pageController,
+            itemCount: images.length,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.asset(images[index], fit: BoxFit.cover),
+                ),
+              );
+            },
+          ),
+        ),
+        SizedBox(height: 12),
+        SmoothPageIndicator(
+          controller: _pageController,
+          count: images.length,
+          effect: WormEffect(
+            activeDotColor: Colors.blue,
+            dotHeight: 12,
+            dotWidth: 12,
+            spacing: 8,
+          ),
+        ),
+      ],
     );
   }
 }

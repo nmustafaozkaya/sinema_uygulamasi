@@ -1,22 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:sinema_uygulamasi/components/auto_ImageSlider.dart';
 import 'package:sinema_uygulamasi/components/user.dart';
-import 'package:sinema_uygulamasi/constant/app_text_style.dart';
 import 'package:sinema_uygulamasi/components/movies.dart';
 import 'package:sinema_uygulamasi/screens/movie_details.dart';
 
 class HomeScreen extends StatelessWidget {
   final User currentUser;
   const HomeScreen({super.key, required this.currentUser});
-  // HomeScreen sınıfının içine (build metodunun dışında, ancak sınıfın içinde)
-  // Bu fonksiyonu çağırırken buildMoviePoster fonksiyonunu da parametre olarak geçmelisiniz
-  // veya buildMoviePoster fonksiyonu da bu sınıfın bir metodu olmalı.
 
-  // Önceki kodunuzdaki buildMoviePoster fonksiyonunu buraya taşıdığınızı varsayıyorum.
-  // Eğer buildMoviePoster farklı bir yerde ise, onu da buraya taşımalı veya parametre olarak almalısınız.
   Widget buildMoviePoster(String posterUrl) {
     if (posterUrl.isEmpty || posterUrl == 'N/A') {
-      return SizedBox.shrink(); // Daha iyi bir placeholder ikon/widget olabilir
+      return SizedBox.shrink();
     } else {
       return Image.network(
         posterUrl,
@@ -35,7 +29,7 @@ class HomeScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text(
+        const Text(
           'List of Movies',
           style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
         ),
@@ -45,19 +39,19 @@ class HomeScreen extends StatelessWidget {
             future: fetchMovies(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator());
+                return const Center(child: CircularProgressIndicator());
               } else if (snapshot.hasError) {
                 return Center(child: Text("Hata: ${snapshot.error}"));
               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return Center(child: Text("Film bulunamadı."));
+                return const Center(child: Text("Film bulunamadı."));
               } else {
                 final movies = snapshot.data!;
 
                 return GridView.builder(
-                  physics: NeverScrollableScrollPhysics(),
+                  physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
                   itemCount: movies.length,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     crossAxisSpacing: 8,
                     mainAxisSpacing: 8,
@@ -85,10 +79,9 @@ class HomeScreen extends StatelessWidget {
                           children: [
                             Expanded(
                               child: ClipRRect(
-                                borderRadius: BorderRadius.vertical(
+                                borderRadius: const BorderRadius.vertical(
                                   top: Radius.circular(12),
                                 ),
-                                // `movie.poster` yerine `movie.posterUrl` kullandığınızdan emin olun
                                 child: buildMoviePoster(movie.poster),
                               ),
                             ),
@@ -96,7 +89,9 @@ class HomeScreen extends StatelessWidget {
                               padding: const EdgeInsets.all(8.0),
                               child: Text(
                                 movie.title,
-                                style: TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
                                 textAlign: TextAlign.center,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
@@ -119,21 +114,58 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        centerTitle: false,
-        title: Text(
-          'Welcome to ${currentUser.userName}!',
-          style: AppTextStyle.TOP_HEADER_,
+        backgroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        leading: Builder(
+          builder: (BuildContext context) {
+            return IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () {
+                Scaffold.of(context).openDrawer();
+              },
+              color: Colors.black,
+            );
+          },
         ),
+        title: Center(
+          child: SizedBox(
+            height: AppBar().preferredSize.height * 0.7,
+            child: Image.asset('assets/images/logox.png', fit: BoxFit.contain),
+          ),
+        ),
+        centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            AutoImageSlider(),
-            SizedBox(height: 10),
-            showMoviesContent(context),
-          ],
-        ),
+      body: Column(
+        children: [
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Explore Movies',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  AutoImageSlider(),
+                  const SizedBox(height: 10),
+                  showMoviesContent(context),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
       drawer: Drawer(
         child: Column(
@@ -142,41 +174,45 @@ class HomeScreen extends StatelessWidget {
               height: 120.0,
               width: double.infinity,
               color: Colors.lightBlueAccent.shade100,
-              child: Padding(
-                padding: EdgeInsets.all(20),
-                child: Align(
-                  alignment: Alignment.bottomLeft,
-                  child: FlutterLogo(
-                    size: 40,
-                    style: FlutterLogoStyle.markOnly,
+              child: Align(
+                alignment: Alignment
+                    .bottomLeft, // Align the padded image to bottom-left
+                child: Padding(
+                  // Wrap the Image with Padding for top margin
+                  padding: const EdgeInsets.only(
+                    top: 20.0,
+                  ), // Adjust this value for desired top "margin"
+                  child: Image.asset(
+                    'assets/images/logox.png',
+                    fit: BoxFit.contain,
                   ),
                 ),
               ),
             ),
             Expanded(
               child: ListView(
-                physics: ClampingScrollPhysics(),
+                physics: const ClampingScrollPhysics(),
                 children: [
                   ListTile(
-                    leading: Icon(Icons.place),
-                    title: Text('Konum'),
-                    trailing: Icon(Icons.arrow_right),
+                    leading: const Icon(Icons.place),
+                    title: const Text('Konum'),
+                    trailing: const Icon(Icons.arrow_right),
                   ),
                   ExpansionTile(
-                    leading: Icon(Icons.adjust),
-                    title: Text('Hakkımızda'),
-                    trailing: Icon(Icons.arrow_drop_down),
+                    leading: const Icon(Icons.adjust),
+                    title: const Text('Hakkımızda'),
+                    trailing: const Icon(Icons.arrow_drop_down),
                     children: [
                       ListTile(
-                        title: Text('Biz Kimiz?'),
+                        title: const Text('Biz Kimiz?'),
                         onTap: () => Navigator.pop(context),
                       ),
                       ListTile(
-                        title: Text('Sertifikalarımız'),
+                        title: const Text('Sertifikalarımız'),
                         onTap: () => Navigator.pop(context),
                       ),
                       ListTile(
-                        title: Text('Misyonumuz'),
+                        title: const Text('Misyonumuz'),
                         onTap: () => Navigator.pop(context),
                       ),
                     ],

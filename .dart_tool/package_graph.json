@@ -13,7 +13,8 @@
         "fluttertoast",
         "font_awesome_flutter",
         "http",
-        "shared_preferences"
+        "shared_preferences",
+        "smooth_page_indicator"
       ],
       "devDependencies": [
         "flutter_lints",
@@ -53,6 +54,13 @@
         "test_api",
         "vector_math",
         "vm_service"
+      ]
+    },
+    {
+      "name": "smooth_page_indicator",
+      "version": "1.2.1",
+      "dependencies": [
+        "flutter"
       ]
     },
     {

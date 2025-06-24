@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sinema_uygulamasi/components/user.dart'; // User sınıfının olduğu varsayılıyor
 import 'package:font_awesome_flutter/font_awesome_flutter.dart'; // FontAwesome ikonları için
 import 'package:sinema_uygulamasi/screens/cinema_screen.dart'; // Sinema ekranınız
+import 'package:sinema_uygulamasi/screens/movies_screen.dart';
 import 'package:sinema_uygulamasi/screens/profile_screen.dart'; // Profil ekranınız
 import 'package:sinema_uygulamasi/screens/home_screen.dart'; // Ana ekranınız (import yolu düzeltildi)
 
@@ -21,8 +22,10 @@ Widget gecerliSayfa(int aktif, User user) {
     case 0:
       return HomeScreen(currentUser: user);
     case 1:
-      return CinemaScreen();
+      return moviesScreen();
     case 2:
+      return CinemaScreen();
+    case 3:
       return ProfileScreen(currentUser: user);
     default:
       return HomeScreen(currentUser: user);
@@ -42,6 +45,7 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.white,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.theaters), label: 'Movies'),
           BottomNavigationBarItem(icon: Icon(Icons.theaters), label: 'Cinemas'),
           BottomNavigationBarItem(
             icon: Icon(FontAwesomeIcons.solidUser),
