@@ -160,7 +160,7 @@ class _CinemaScreenState extends State<CinemaScreen> {
             movies = fetchedMovies;
             isLoadingMovies = false;
           });
-          return; // Exit after successful fetch and state update
+          return;
         } else {
           print(
             'Sinema detayları API yanıt formatı hatası veya statüs false: $data',
@@ -171,7 +171,6 @@ class _CinemaScreenState extends State<CinemaScreen> {
           'Sinema detayları çekilirken HTTP hatası: ${response.statusCode}',
         );
       }
-      // If any error or unexpected format, ensure loading states are false and movies list is empty
       setState(() {
         movies = [];
         isLoadingMovies = false;
@@ -226,13 +225,11 @@ class _CinemaScreenState extends State<CinemaScreen> {
                         );
                       },
                     )
-                  : movies
-                        .isNotEmpty // If a cinema is selected AND movies are loaded
-                  ? isLoadingMovies // Show loading indicator specifically for movies
+                  : movies.isNotEmpty
+                  ? isLoadingMovies
                         ? const Center(child: CircularProgressIndicator())
                         : MovieListSection(movies: movies) // Display movies
                   : ListView.builder(
-                      // Show cinemas if a city is selected but no movies yet
                       itemCount: cinemas.length,
                       itemBuilder: (context, index) {
                         final cinema = cinemas[index];
