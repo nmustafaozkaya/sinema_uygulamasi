@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:sinema_uygulamasi/api_connection/api_connection.dart';
 import 'package:sinema_uygulamasi/components/movies.dart';
 import 'package:sinema_uygulamasi/constant/app_text_style.dart';
 import 'package:sinema_uygulamasi/screens/movie_details.dart';
 
 Widget buildMoviePoster(String posterUrl) {
   if (posterUrl.isEmpty || posterUrl == 'N/A') {
-    return SizedBox.shrink();
+    return Center(
+      child: Icon(Icons.broken_image, size: 50, color: Colors.grey),
+    );
   } else {
     return Image.network(
       posterUrl,
@@ -16,13 +19,24 @@ Widget buildMoviePoster(String posterUrl) {
           child: Icon(Icons.broken_image, size: 50, color: Colors.grey),
         );
       },
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Center(
+          child: CircularProgressIndicator(
+            value: loadingProgress.expectedTotalBytes != null
+                ? loadingProgress.cumulativeBytesLoaded /
+                      loadingProgress.expectedTotalBytes!
+                : null,
+          ),
+        );
+      },
     );
   }
 }
 
-Widget _buildMovieGridSliver(BuildContext context) {
+Widget _buildMovieGridSliver(BuildContext context, String apiurl) {
   return FutureBuilder<List<Movie>>(
-    future: fetchMovies(),
+    future: fetchMovies(apiurl),
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
         return SliverFillRemaining(
@@ -53,7 +67,8 @@ Widget _buildMovieGridSliver(BuildContext context) {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => MovieDetails(currentMovie: movie),
+                    builder: (context) =>
+                        MovieDetails(currentMovie: movie, isNowShowing: true),
                   ),
                 );
               },
@@ -211,6 +226,8 @@ class _moviesScreenState extends State<moviesScreen> {
     });
   }
 
+  bool isNowPlaying = true;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -234,12 +251,13 @@ class _moviesScreenState extends State<moviesScreen> {
             sliver: Builder(
               builder: (context) {
                 if (selectedCategory == 'Now Showing') {
-                  return _buildMovieGridSliver(context);
+                  isNowPlaying = true;
+                  return _buildMovieGridSliver(context, ApiConnection.movies);
                 } else if (selectedCategory == 'Coming Soon') {
-                  return SliverFillRemaining(
-                    child: Center(
-                      child: Text('No Coming Soon movies available.'),
-                    ),
+                  isNowPlaying = false;
+                  return _buildMovieGridSliver(
+                    context,
+                    ApiConnection.futureMovies,
                   );
                 } else if (selectedCategory == 'Pre Order') {
                   return SliverFillRemaining(

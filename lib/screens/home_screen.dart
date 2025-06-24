@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sinema_uygulamasi/api_connection/api_connection.dart';
 import 'package:sinema_uygulamasi/components/auto_ImageSlider.dart';
 import 'package:sinema_uygulamasi/components/user.dart';
 import 'package:sinema_uygulamasi/components/movies.dart';
@@ -8,23 +9,6 @@ import 'package:sinema_uygulamasi/screens/movies_screen.dart';
 class HomeScreen extends StatelessWidget {
   final User currentUser;
   const HomeScreen({super.key, required this.currentUser});
-
-  Widget buildMoviePoster(String posterUrl) {
-    if (posterUrl.isEmpty || posterUrl == 'N/A') {
-      return SizedBox.shrink();
-    } else {
-      return Image.network(
-        posterUrl,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          print('Resim yüklenemedi: $posterUrl - Hata: $error');
-          return Center(
-            child: Icon(Icons.broken_image, size: 50, color: Colors.grey),
-          );
-        },
-      );
-    }
-  }
 
   Widget showMoviesContent(BuildContext context) {
     return Column(
@@ -59,7 +43,7 @@ class HomeScreen extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         FutureBuilder<List<Movie>>(
-          future: fetchMovies(),
+          future: fetchMovies(ApiConnection.movies),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const SizedBox(
@@ -91,8 +75,10 @@ class HomeScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                MovieDetails(currentMovie: movie),
+                            builder: (context) => MovieDetails(
+                              currentMovie: movie,
+                              isNowShowing: true,
+                            ),
                           ),
                         );
                       },
@@ -113,6 +99,10 @@ class HomeScreen extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Widget showMoviesComingSoon(BuildContext context) {
+    return Column();
   }
 
   @override

@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:sinema_uygulamasi/api_connection/api_connection.dart';
 
 class Movie {
   final int id;
@@ -58,22 +57,35 @@ class Movie {
   }
 }
 
-Future<List<Movie>> fetchMovies() async {
+Future<List<Movie>> fetchMovies(String apiUrl) async {
   try {
-    final res = await http.get(Uri.parse(ApiConnection.movies));
+    final res = await http.get(Uri.parse(apiUrl));
 
     if (res.statusCode == 200) {
       final data = jsonDecode(res.body);
-      if (data['status'] == true) {
-        final List<dynamic> movieList = data['data'];
+
+      if (data.containsKey('future_movies') && data['future_movies'] is List) {
+        final List<dynamic> movieList = data['future_movies'];
         List<Movie> movies = movieList.map((json) {
           final movie = Movie.fromJson(json);
           return movie;
         }).toList();
         return movies;
-      } else {
-        return [];
       }
+
+      if (data.containsKey('status') &&
+          data['status'] == true &&
+          data.containsKey('data') &&
+          data['data'] is List) {
+        final List<dynamic> movieList = data['data'];
+        List<Movie> movies = movieList
+            .map((json) => Movie.fromJson(json))
+            .toList();
+        return movies;
+      }
+
+      print('Beklenmedik JSON formatı: $data');
+      return [];
     } else {
       print('Sunucu hatası: ${res.statusCode}');
       return [];
