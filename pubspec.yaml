@@ -74,6 +74,7 @@ flutter:
     - assets/images/slide2.jpg
     - assets/images/slide3.jpg
     - assets/images/logox.png
+    - assets/images/seats.jpg
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

@@ -1,11 +1,20 @@
+// lib/components/movie_list_section.dart
+
 import 'package:flutter/material.dart';
 import 'package:sinema_uygulamasi/components/movies.dart';
 import 'package:sinema_uygulamasi/screens/movie_details.dart';
 
 class MovieListSection extends StatelessWidget {
   final List<Movie> movies;
+  final Function(Movie) onMovieTap;
+  final bool isForNowShowing;
 
-  const MovieListSection({Key? key, required this.movies}) : super(key: key);
+  const MovieListSection({
+    Key? key,
+    required this.movies,
+    required this.onMovieTap,
+    required this.isForNowShowing,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +38,11 @@ class MovieListSection extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder: (context) =>
-                    MovieDetails(currentMovie: movie, isNowShowing: true),
+                    // Pass the new parameter to MovieDetails
+                    MovieDetails(
+                      currentMovie: movie,
+                      isNowShowing: isForNowShowing,
+                    ), // <-- USE THE NEW PARAMETER HERE
               ),
             );
           },

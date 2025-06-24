@@ -7,7 +7,7 @@ import 'package:sinema_uygulamasi/components/movies.dart';
 
 class MovieDetails extends StatefulWidget {
   final Movie? currentMovie;
-  final bool isNowShowing; // This flag determines button behavior
+  final bool isNowShowing;
 
   const MovieDetails({
     super.key,
@@ -20,25 +20,21 @@ class MovieDetails extends StatefulWidget {
 }
 
 class _MovieDetailsState extends State<MovieDetails> {
-  Cinema? currentCinema; // To store the selected cinema
+  Cinema? currentCinema;
 
   @override
   void initState() {
     super.initState();
-    _loadCinema(); // Load saved cinema preference when the screen initializes
+    _loadCinema();
   }
 
-  // Asynchronously loads the remembered cinema from preferences
   void _loadCinema() async {
     currentCinema = await RememberMoviePrefs.getRememberMovie();
-    // After loading, update the UI to reflect if a cinema is selected
     if (mounted) {
-      // Check if the widget is still in the widget tree
       setState(() {});
     }
   }
 
-  // Helper widget to build star ratings based on a 5-point scale
   Widget _buildStarRating(double rating, {double size = 24}) {
     int fullStars = rating.floor();
     bool hasHalfStar = (rating - fullStars) >= 0.5;
@@ -59,12 +55,10 @@ class _MovieDetailsState extends State<MovieDetails> {
     return Row(mainAxisSize: MainAxisSize.min, children: stars);
   }
 
-  // Helper widget to build the movie poster, handling empty/N/A URLs
   Widget _buildMoviePoster(String posterUrl) {
     if (posterUrl.isEmpty || posterUrl == 'N/A') {
-      // Placeholder for missing poster
       return Container(
-        height: 300, // Fixed height for consistency
+        height: 300,
         color: Colors.grey.shade300,
         child: const Center(
           child: Icon(Icons.image_not_supported, size: 100, color: Colors.grey),
@@ -77,9 +71,8 @@ class _MovieDetailsState extends State<MovieDetails> {
           posterUrl,
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) {
-            // Error placeholder if image fails to load
             return Container(
-              height: 300, // Fixed height for consistency
+              height: 300,
               color: Colors.grey.shade300,
               child: const Center(
                 child: Icon(Icons.broken_image, size: 100, color: Colors.grey),
@@ -95,7 +88,6 @@ class _MovieDetailsState extends State<MovieDetails> {
   Widget build(BuildContext context) {
     final movie = widget.currentMovie;
 
-    // Show a loading indicator or error if movie data is null
     if (movie == null) {
       return Scaffold(
         appBar: PreferredSize(
@@ -110,18 +102,16 @@ class _MovieDetailsState extends State<MovieDetails> {
       );
     }
 
-    // Calculate IMDb score and convert to 5-star rating
     double imdbScore = double.tryParse(movie.imdbRating) ?? 0.0;
     double starRating = (imdbScore / 10) * 5;
 
-    // --- Dynamic button properties based on isNowShowing ---
     VoidCallback? buttonOnPressed;
     String buttonText;
     Color buttonColor;
-    Color buttonTextColor = Colors.white; // Default text color for button
+    Color buttonTextColor = Colors.white;
 
     if (widget.isNowShowing) {
-      buttonText = "Buy Tickets"; // "Satın Al"
+      buttonText = "Buy Tickets";
       buttonColor = Colors.amber;
       buttonOnPressed = () {
         if (currentCinema != null) {
@@ -134,26 +124,17 @@ class _MovieDetailsState extends State<MovieDetails> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text(
-                'Please select a cinema first.',
-              ), // "Lütfen önce bir sinema seçin."
+              content: Text('Please select a cinema first.'),
               backgroundColor: Colors.red,
             ),
           );
         }
       };
     } else {
-      buttonText = "Coming Soon"; // "Gelecek"
-      buttonColor = Colors.grey; // Grey out the button for coming soon
-      buttonOnPressed = null; // Disable the button, no navigation
-      // If you want a message when 'Coming Soon' button is tapped:
-      // buttonOnPressed = () {
-      //   ScaffoldMessenger.of(context).showSnackBar(
-      //     const SnackBar(content: Text('This movie is coming soon!')),
-      //   );
-      // };
+      buttonText = "Buy Tickets (Currently Unavailable)";
+      buttonColor = Colors.grey;
+      buttonOnPressed = null;
     }
-    // --- End of dynamic button properties ---
 
     return Scaffold(
       appBar: AppBar(
@@ -163,12 +144,11 @@ class _MovieDetailsState extends State<MovieDetails> {
         foregroundColor: Colors.black,
       ),
       body: SingleChildScrollView(
-        physics: const ClampingScrollPhysics(), // Prevents unnecessary bouncing
+        physics: const ClampingScrollPhysics(),
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Movie Poster
             Container(
               decoration: BoxDecoration(
                 border: Border.all(width: 2, color: Colors.black),
@@ -177,8 +157,6 @@ class _MovieDetailsState extends State<MovieDetails> {
               child: _buildMoviePoster(movie.poster),
             ),
             const SizedBox(height: 16),
-
-            // Movie Title
             Center(
               child: Text(
                 movie.title,
@@ -189,8 +167,6 @@ class _MovieDetailsState extends State<MovieDetails> {
               ),
             ),
             const SizedBox(height: 16),
-
-            // Movie Plot/Description
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -203,29 +179,25 @@ class _MovieDetailsState extends State<MovieDetails> {
               ),
             ),
             const SizedBox(height: 16),
-
-            // IMDb Rating
             Row(
               children: [
                 const Icon(
                   FontAwesomeIcons.star,
                   size: 20,
                   color: Colors.amber,
-                ), // Star icon for rating
+                ),
                 const SizedBox(width: 10),
                 const Text(
                   "IMDb Rating:",
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(width: 5),
-                _buildStarRating(starRating), // Custom star rating widget
+                _buildStarRating(starRating),
                 const SizedBox(width: 8),
-                Text(imdbScore.toStringAsFixed(1)), // Display raw IMDb score
+                Text(imdbScore.toStringAsFixed(1)),
               ],
             ),
             const SizedBox(height: 12),
-
-            // Movie Release Year/Date
             Row(
               children: [
                 const Icon(FontAwesomeIcons.calendarDay, size: 20),
@@ -234,8 +206,6 @@ class _MovieDetailsState extends State<MovieDetails> {
               ],
             ),
             const SizedBox(height: 10),
-
-            // Movie Genre
             Row(
               children: [
                 const Icon(FontAwesomeIcons.clapperboard, size: 20),
@@ -244,8 +214,6 @@ class _MovieDetailsState extends State<MovieDetails> {
               ],
             ),
             const SizedBox(height: 10),
-
-            // Movie Runtime
             Row(
               children: [
                 const Icon(FontAwesomeIcons.clock, size: 20),
@@ -254,20 +222,17 @@ class _MovieDetailsState extends State<MovieDetails> {
               ],
             ),
             const SizedBox(height: 20),
-
-            // --- Buy Tickets / Coming Soon Button ---
             ElevatedButton(
-              onPressed:
-                  buttonOnPressed, // Uses the dynamically set callback (null for disabled)
+              onPressed: buttonOnPressed,
               style: ElevatedButton.styleFrom(
-                backgroundColor: buttonColor, // Uses the dynamically set color
+                backgroundColor: buttonColor,
                 padding: const EdgeInsets.symmetric(vertical: 15),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
               child: Text(
-                buttonText, // Uses the dynamically set text
+                buttonText,
                 style: TextStyle(
                   color: buttonTextColor,
                   fontSize: 18,

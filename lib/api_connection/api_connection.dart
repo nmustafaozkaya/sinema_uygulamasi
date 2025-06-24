@@ -11,7 +11,4 @@ class ApiConnection {
   static String movieById(int id) => '$hostConnection/movies/$id';
   static const allCinemasapi = '$hostConnection/cities/all-cinemas';
   static const futureMovies = '$hostConnection/future-movies';
-
-  static String moviesByCinema(int cinemaId) =>
-      '$hostConnection/cinemas/$cinemaId/movies';
 }

@@ -1,15 +1,65 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:sinema_uygulamasi/api_connection/api_connection.dart';
 import 'package:sinema_uygulamasi/components/auto_ImageSlider.dart';
+import 'package:sinema_uygulamasi/components/promotions_screen.dart';
 import 'package:sinema_uygulamasi/components/user.dart';
-import 'package:sinema_uygulamasi/components/movies.dart';
+import 'package:sinema_uygulamasi/components/movies.dart'; // Movie modelini ve fetchMovies fonksiyonunu içeriyorsa
 import 'package:sinema_uygulamasi/screens/movie_details.dart';
-import 'package:sinema_uygulamasi/screens/movies_screen.dart';
+import 'package:sinema_uygulamasi/screens/movies_screen.dart'; // isComingSoon parametresi alan moviesScreen
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+Widget buildMoviePoster(String posterUrl) {
+  if (posterUrl.isEmpty || posterUrl == 'N/A') {
+    return Container(
+      color: Colors.grey.shade300,
+      child: const Center(
+        child: Icon(Icons.image_not_supported, size: 60, color: Colors.grey),
+      ),
+    );
+  } else {
+    return Image.network(
+      posterUrl,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          color: Colors.grey.shade300,
+          child: const Center(
+            child: Icon(Icons.broken_image, size: 60, color: Colors.grey),
+          ),
+        );
+      },
+    );
+  }
+}
+
+Future<List<Movie>> fetchMovies(String url) async {
+  final response = await http.get(Uri.parse(url));
+
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    if (data['status'] == true && data['data'] is List) {
+      return (data['data'] as List)
+          .map((json) => Movie.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } else if (data['status'] == true && data['data'] is Map) {
+      return [Movie.fromJson(data['data'] as Map<String, dynamic>)];
+    } else {
+      throw Exception('API response format error or status is false: $data');
+    }
+  } else {
+    throw Exception(
+      'Failed to load movies from $url with status code: ${response.statusCode}',
+    );
+  }
+}
 
 class HomeScreen extends StatelessWidget {
   final User currentUser;
   const HomeScreen({super.key, required this.currentUser});
 
+  // Vizyondaki Filmler bölümü
   Widget showMoviesContent(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -17,8 +67,8 @@ class HomeScreen extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 10.0),
+            const Padding(
+              padding: EdgeInsets.only(left: 10.0),
               child: Text(
                 'Now Showing Movies',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -28,14 +78,21 @@ class HomeScreen extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const moviesScreen()),
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        const moviesScreen(isComingSoon: false),
+                  ),
                 );
               },
-              child: Padding(
-                padding: const EdgeInsets.only(right: 20.0),
+              child: const Padding(
+                padding: EdgeInsets.only(right: 20.0),
                 child: Text(
                   'All',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 20,
+                    decoration: TextDecoration.underline,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -101,8 +158,103 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  // Çok Yakındaki Filmler bölümü
   Widget showMoviesComingSoon(BuildContext context) {
-    return Column();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(left: 10.0),
+              child: Text(
+                'Coming Soon Movies',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        const moviesScreen(isComingSoon: true),
+                  ),
+                );
+              },
+              child: const Padding(
+                padding: EdgeInsets.only(right: 20.0),
+                child: Text(
+                  'All',
+                  style: TextStyle(
+                    fontSize: 20,
+                    decoration: TextDecoration.underline,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        FutureBuilder<List<Movie>>(
+          future: fetchMovies(ApiConnection.futureMovies),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const SizedBox(
+                height: 180,
+                child: Center(child: CircularProgressIndicator()),
+              );
+            } else if (snapshot.hasError) {
+              return SizedBox(
+                height: 180,
+                child: Center(child: Text("Hata: ${snapshot.error}")),
+              );
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const SizedBox(
+                height: 180,
+                child: Center(child: Text("Film bulunamadı.")),
+              );
+            } else {
+              final movies = snapshot.data!;
+              return SizedBox(
+                height: 180,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  itemCount: movies.length,
+                  itemBuilder: (context, index) {
+                    final movie = movies[index];
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MovieDetails(
+                              currentMovie: movie,
+                              isNowShowing: false,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        width: 120,
+                        margin: const EdgeInsets.only(right: 12),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: buildMoviePoster(movie.poster),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              );
+            }
+          },
+        ),
+      ],
+    );
   }
 
   @override
@@ -124,9 +276,10 @@ class HomeScreen extends StatelessWidget {
             );
           },
         ),
-        title: Center(
+        title: Padding(
+          padding: const EdgeInsets.only(left: 20),
           child: SizedBox(
-            height: AppBar().preferredSize.height * 0.7,
+            height: AppBar().preferredSize.height * 0.8,
             child: Image.asset('assets/images/logox.png', fit: BoxFit.contain),
           ),
         ),
@@ -155,6 +308,8 @@ class HomeScreen extends StatelessWidget {
                   AutoImageSlider(),
                   const SizedBox(height: 10),
                   showMoviesContent(context),
+                  const SizedBox(height: 20),
+                  showMoviesComingSoon(context),
                 ],
               ),
             ),
@@ -184,10 +339,20 @@ class HomeScreen extends StatelessWidget {
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
-                  ListTile(
-                    leading: const Icon(Icons.place),
-                    title: const Text('Konum'),
-                    trailing: const Icon(Icons.arrow_right),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const Promotions(),
+                        ),
+                      );
+                    },
+                    child: ListTile(
+                      leading: const Icon(FontAwesomeIcons.gift),
+                      title: const Text('Promotions'),
+                      trailing: const Icon(Icons.arrow_right),
+                    ),
                   ),
                   ExpansionTile(
                     leading: const Icon(Icons.adjust),

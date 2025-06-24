@@ -34,7 +34,11 @@ Widget buildMoviePoster(String posterUrl) {
   }
 }
 
-Widget _buildMovieGridSliver(BuildContext context, String apiurl) {
+Widget _buildMovieGridSliver(
+  BuildContext context,
+  String apiurl,
+  bool isNowPlaying,
+) {
   return FutureBuilder<List<Movie>>(
     future: fetchMovies(apiurl),
     builder: (context, snapshot) {
@@ -67,8 +71,10 @@ Widget _buildMovieGridSliver(BuildContext context, String apiurl) {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        MovieDetails(currentMovie: movie, isNowShowing: true),
+                    builder: (context) => MovieDetails(
+                      currentMovie: movie,
+                      isNowShowing: isNowPlaying,
+                    ),
                   ),
                 );
               },
@@ -211,14 +217,16 @@ class _CategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
 }
 
 class moviesScreen extends StatefulWidget {
-  const moviesScreen({super.key});
+  final bool isComingSoon;
+
+  const moviesScreen({super.key, required this.isComingSoon});
 
   @override
   State<moviesScreen> createState() => _moviesScreenState();
 }
 
 class _moviesScreenState extends State<moviesScreen> {
-  String selectedCategory = 'Now Showing';
+  late String selectedCategory;
 
   void _onCategorySelected(String category) {
     setState(() {
@@ -227,6 +235,11 @@ class _moviesScreenState extends State<moviesScreen> {
   }
 
   bool isNowPlaying = true;
+  @override
+  void initState() {
+    super.initState();
+    selectedCategory = widget.isComingSoon ? 'Coming Soon' : 'Now Showing';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -252,12 +265,17 @@ class _moviesScreenState extends State<moviesScreen> {
               builder: (context) {
                 if (selectedCategory == 'Now Showing') {
                   isNowPlaying = true;
-                  return _buildMovieGridSliver(context, ApiConnection.movies);
+                  return _buildMovieGridSliver(
+                    context,
+                    ApiConnection.movies,
+                    isNowPlaying,
+                  );
                 } else if (selectedCategory == 'Coming Soon') {
                   isNowPlaying = false;
                   return _buildMovieGridSliver(
                     context,
                     ApiConnection.futureMovies,
+                    isNowPlaying,
                   );
                 } else if (selectedCategory == 'Pre Order') {
                   return SliverFillRemaining(

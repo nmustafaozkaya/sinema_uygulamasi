@@ -10,7 +10,7 @@ import 'package:sinema_uygulamasi/api_connection/api_connection.dart';
 import 'package:sinema_uygulamasi/components/movie_list_section.dart';
 
 class CinemaScreen extends StatefulWidget {
-  const CinemaScreen({Key? key}) : super(key: key);
+  const CinemaScreen({super.key});
 
   @override
   State<CinemaScreen> createState() => _CinemaScreenState();
@@ -18,181 +18,60 @@ class CinemaScreen extends StatefulWidget {
 
 class _CinemaScreenState extends State<CinemaScreen> {
   List<City> cities = [];
-  List<Cinema> cinemas = [];
-  List<Movie> movies = [];
-
+  List<Cinema> allCinemas = [];
+  List<Cinema> displayedCinemas = [];
   int? selectedCityId;
   bool isLoading = false;
-  bool isLoadingMovies = false;
 
   @override
   void initState() {
     super.initState();
     fetchCities();
+    fetchAllCinemas();
   }
 
   Future<void> fetchCities() async {
-    setState(() => isLoading = true);
-
-    try {
-      final response = await http.get(
-        Uri.parse(ApiConnection.cities),
-        headers: {'Content-Type': 'application/json'},
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['status'] == true && data['data'] is List) {
-          // Added type check
-          setState(() {
-            cities = (data['data'] as List)
-                .map((json) => City.fromJson(json))
-                .toList();
-            isLoading = false;
-          });
-        } else {
-          print('Şehirler API yanıt formatı hatası veya statüs false: $data');
-          setState(() => isLoading = false);
-        }
-      } else {
-        print('Şehirler çekilirken HTTP hatası: ${response.statusCode}');
-        setState(() => isLoading = false);
-      }
-    } catch (e) {
-      print('Şehirler çekilirken genel hata: $e');
-      setState(() => isLoading = false);
-    }
-  }
-
-  Future<void> fetchCinemas(int cityId) async {
-    setState(() {
-      isLoading = true;
-      selectedCityId = cityId;
-      cinemas = [];
-      movies = [];
-    });
-
-    try {
-      final response = await http.get(
-        Uri.parse(ApiConnection.cinemas(cityId)),
-        headers: {'Content-Type': 'application/json'},
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['status'] == true && data['data'] is List) {
-          // Added type check
-          setState(() {
-            cinemas = (data['data'] as List)
-                .map((json) => Cinema.fromJson(json))
-                .toList();
-            isLoading = false;
-          });
-        } else {
-          print('Sinemalar API yanıt formatı hatası veya statüs false: $data');
-          setState(() => isLoading = false);
-        }
-      } else {
-        print('Sinemalar çekilirken HTTP hatası: ${response.statusCode}');
-        setState(() => isLoading = false);
-      }
-    } catch (e) {
-      print('Sinemalar çekilirken genel hata: $e');
-      setState(() => isLoading = false);
-    }
-  }
-
-  Future<void> fetchMoviesByCinema(int cityId, int cinemaId) async {
-    setState(() {
-      isLoadingMovies = true;
-      movies = [];
-    });
-
-    try {
-      final response = await http.get(
-        Uri.parse(
-          '${ApiConnection.hostConnection}/cities/$cityId/cinemas/$cinemaId',
-        ),
-        headers: {'Content-Type': 'application/json'},
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['status'] == true && data['data'] is Map) {
-          // Added type check
-          final showtimes =
-              data['data']['showtimes'] as List? ??
-              []; // Handle null or non-list
-          final movieIds = showtimes
-              .map<int>((e) => e['movie_id'] as int)
-              .toSet() // Use toSet to get unique IDs
+    final response = await http.get(Uri.parse(ApiConnection.cities));
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['status'] == true) {
+        setState(() {
+          cities = (data['data'] as List)
+              .map((json) => City.fromJson(json))
               .toList();
-
-          List<Movie> fetchedMovies = [];
-          for (var id in movieIds) {
-            // --- CRUCIAL FIX HERE ---
-            // Use ApiConnection.movieById(id) to fetch each movie by its ID
-            final movieRes = await http.get(
-              Uri.parse(
-                ApiConnection.movieById(id),
-              ), // <-- Use the specific movie ID here!
-              headers: {'Content-Type': 'application/json'},
-            );
-
-            if (movieRes.statusCode == 200) {
-              final movieData = jsonDecode(movieRes.body);
-              // Ensure 'data' exists and is a Map for a single movie object
-              if (movieData['status'] == true && movieData['data'] is Map) {
-                fetchedMovies.add(Movie.fromJson(movieData['data']));
-              } else {
-                print(
-                  'Film ID $id için API yanıt formatı hatası veya statüs false: $movieData',
-                );
-              }
-            } else {
-              print(
-                'Film ID $id çekilirken HTTP hatası: ${movieRes.statusCode}',
-              );
-            }
-          }
-
-          setState(() {
-            movies = fetchedMovies;
-            isLoadingMovies = false;
-          });
-          return;
-        } else {
-          print(
-            'Sinema detayları API yanıt formatı hatası veya statüs false: $data',
-          );
-        }
-      } else {
-        print(
-          'Sinema detayları çekilirken HTTP hatası: ${response.statusCode}',
-        );
+        });
       }
-      setState(() {
-        movies = [];
-        isLoadingMovies = false;
-      });
-    } catch (e) {
-      print('Filmler çekilirken genel hata: $e');
-      setState(() {
-        movies = [];
-        isLoadingMovies = false;
-      });
     }
   }
 
-  void backToCities() {
+  Future<void> fetchAllCinemas() async {
+    setState(() => isLoading = true);
+    final response = await http.get(Uri.parse(ApiConnection.allCinemasapi));
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['status'] == true) {
+        setState(() {
+          allCinemas = (data['data'] as List)
+              .map((json) => Cinema.fromJson(json))
+              .toList();
+          displayedCinemas = allCinemas;
+        });
+      }
+    }
+    setState(() => isLoading = false);
+  }
+
+  void filterCinemasByCity(int? cityId) {
     setState(() {
-      selectedCityId = null;
-      cinemas = [];
-      movies = [];
-      isLoadingMovies = false; // Reset movie loading state too
-      isLoading = false; // This will be set true again by fetchCities if called
+      selectedCityId = cityId;
+      if (cityId == null) {
+        displayedCinemas = allCinemas;
+      } else {
+        displayedCinemas = allCinemas
+            .where((cinema) => cinema.cityId == cityId)
+            .toList();
+      }
     });
-    fetchCities(); // Re-fetch cities when going back
   }
 
   @override
@@ -200,52 +79,79 @@ class _CinemaScreenState extends State<CinemaScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Cinemas', style: AppTextStyle.TOP_HEADER_),
-        leading: selectedCityId != null
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: backToCities,
-              )
-            : null,
       ),
-      body:
-          isLoading // Overall loading for cities/cinemas
+      body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child:
-                  selectedCityId ==
-                      null // Show cities if no city selected
-                  ? ListView.builder(
-                      itemCount: cities.length,
-                      itemBuilder: (context, index) {
-                        final city = cities[index];
-                        return ListTile(
-                          title: Text(city.name),
-                          onTap: () => fetchCinemas(city.id),
-                        );
-                      },
-                    )
-                  : movies.isNotEmpty
-                  ? isLoadingMovies
-                        ? const Center(child: CircularProgressIndicator())
-                        : MovieListSection(movies: movies) // Display movies
-                  : ListView.builder(
-                      itemCount: cinemas.length,
-                      itemBuilder: (context, index) {
-                        final cinema = cinemas[index];
-                        return ListTile(
-                          title: Text(cinema.cinemaName),
-                          subtitle: Text(cinema.cinemaAddress),
-                          onTap: () async {
-                            await RememberMoviePrefs.saveRememberMovie(cinema);
-                            await fetchMoviesByCinema(
-                              selectedCityId!,
-                              cinema.cinemaId,
+          : Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: DropdownButtonHideUnderline(
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(color: Colors.grey.shade400),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: DropdownButton<int?>(
+                        value: selectedCityId,
+                        hint: Text("Şehir Seçin"),
+                        onChanged: (value) {
+                          filterCinemasByCity(value);
+                        },
+                        items: [
+                          DropdownMenuItem<int?>(
+                            value: null,
+                            child: Row(
+                              children: [
+                                Icon(Icons.public, color: Colors.black),
+                                SizedBox(width: 8),
+                                Text("Tümü"),
+                              ],
+                            ),
+                          ),
+                          ...cities.map((city) {
+                            return DropdownMenuItem<int?>(
+                              value: city.id,
+                              child: Row(
+                                children: [
+                                  Icon(Icons.location_city, color: Colors.blue),
+                                  SizedBox(width: 8),
+                                  Text(city.name),
+                                ],
+                              ),
                             );
-                          },
-                        );
-                      },
+                          }).toList(),
+                        ],
+                        isExpanded: true,
+                        dropdownColor: Colors.white,
+                      ),
                     ),
+                  ),
+                ),
+
+                const Divider(),
+
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: displayedCinemas.length,
+                    itemBuilder: (context, index) {
+                      final cinema = displayedCinemas[index];
+                      return ListTile(
+                        title: Text(cinema.cinemaName),
+                        subtitle: Text(cinema.cinemaAddress),
+                        onTap: () async {
+                          RememberMoviePrefs.saveRememberMovie(cinema);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
     );
   }

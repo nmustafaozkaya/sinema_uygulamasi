@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:sinema_uygulamasi/components/user.dart'; // User sınıfının olduğu varsayılıyor
-import 'package:font_awesome_flutter/font_awesome_flutter.dart'; // FontAwesome ikonları için
-import 'package:sinema_uygulamasi/screens/cinema_screen.dart'; // Sinema ekranınız
+import 'package:sinema_uygulamasi/components/user.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:sinema_uygulamasi/screens/cinema_screen.dart';
 import 'package:sinema_uygulamasi/screens/movies_screen.dart';
-import 'package:sinema_uygulamasi/screens/profile_screen.dart'; // Profil ekranınız
-import 'package:sinema_uygulamasi/screens/home_screen.dart'; // Ana ekranınız (import yolu düzeltildi)
+import 'package:sinema_uygulamasi/screens/profile_screen.dart';
+import 'package:sinema_uygulamasi/screens/home_screen.dart';
 
 class HomePage extends StatefulWidget {
   final User currentUser;
@@ -22,7 +22,7 @@ Widget gecerliSayfa(int aktif, User user) {
     case 0:
       return HomeScreen(currentUser: user);
     case 1:
-      return moviesScreen();
+      return moviesScreen(isComingSoon: false);
     case 2:
       return CinemaScreen();
     case 3:
@@ -45,7 +45,7 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.white,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.theaters), label: 'Movies'),
+          BottomNavigationBarItem(icon: Icon(Icons.movie), label: 'Movies'),
           BottomNavigationBarItem(icon: Icon(Icons.theaters), label: 'Cinemas'),
           BottomNavigationBarItem(
             icon: Icon(FontAwesomeIcons.solidUser),
