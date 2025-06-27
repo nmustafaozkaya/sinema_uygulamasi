@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:sinema_uygulamasi/components/buy_screen.dart';
+import 'package:sinema_uygulamasi/screens/buy_screen.dart';
 import 'package:sinema_uygulamasi/components/cinemas.dart';
 import 'package:sinema_uygulamasi/components/movie_preferences.dart';
 import 'package:sinema_uygulamasi/components/movies.dart';

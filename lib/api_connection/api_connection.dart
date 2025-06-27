@@ -11,4 +11,7 @@ class ApiConnection {
   static String movieById(int id) => '$hostConnection/movies/$id';
   static const allCinemasapi = '$hostConnection/cities/all-cinemas';
   static const futureMovies = '$hostConnection/future-movies';
+  static String showTime(int cityId, movieId) =>
+      '$hostConnection/cinemas/$cityId/movies/$movieId/showtimes';
+  static String seats(int showTimeId) => '/showtimes/showTimeId/seats';
 }

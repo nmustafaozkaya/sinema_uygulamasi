@@ -4,9 +4,10 @@ import 'package:sinema_uygulamasi/api_connection/api_connection.dart';
 import 'package:sinema_uygulamasi/components/auto_ImageSlider.dart';
 import 'package:sinema_uygulamasi/components/promotions_screen.dart';
 import 'package:sinema_uygulamasi/components/user.dart';
-import 'package:sinema_uygulamasi/components/movies.dart'; // Movie modelini ve fetchMovies fonksiyonunu içeriyorsa
+import 'package:sinema_uygulamasi/components/movies.dart';
 import 'package:sinema_uygulamasi/screens/movie_details.dart';
-import 'package:sinema_uygulamasi/screens/movies_screen.dart'; // isComingSoon parametresi alan moviesScreen
+import 'package:sinema_uygulamasi/components/get_promotions.dart';
+import 'package:sinema_uygulamasi/screens/movies_screen.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -257,6 +258,78 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  Widget showpromotions(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(left: 10.0),
+              child: Text(
+                'Promotions',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PromotionsScreen(),
+                  ),
+                );
+              },
+              child: const Padding(
+                padding: EdgeInsets.only(right: 20.0),
+                child: Text(
+                  'All',
+                  style: TextStyle(
+                    fontSize: 20,
+                    decoration: TextDecoration.underline,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        FutureBuilder<List<Promotion>>(
+          future: fetchPromotions(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const SizedBox(
+                height: 180,
+                child: Center(child: CircularProgressIndicator()),
+              );
+            } else if (snapshot.hasError ||
+                !snapshot.hasData ||
+                snapshot.data!.isEmpty) {
+              return const SizedBox.shrink();
+            } else {
+              final promotions = snapshot.data!;
+              return SizedBox(
+                height: 180,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  itemCount: promotions.length,
+                  itemBuilder: (context, index) {
+                    final promotion = promotions[index];
+                    return HorizontalPromotionCard(promotion: promotion);
+                  },
+                ),
+              );
+            }
+          },
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -310,6 +383,8 @@ class HomeScreen extends StatelessWidget {
                   showMoviesContent(context),
                   const SizedBox(height: 20),
                   showMoviesComingSoon(context),
+                  const SizedBox(height: 20),
+                  showpromotions(context),
                 ],
               ),
             ),
@@ -344,7 +419,7 @@ class HomeScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const Promotions(),
+                          builder: (context) => const PromotionsScreen(),
                         ),
                       );
                     },
