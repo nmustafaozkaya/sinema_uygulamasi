@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:sinema_uygulamasi/components/cinemas.dart';
 import 'package:sinema_uygulamasi/components/movie_preferences.dart';
 import 'package:sinema_uygulamasi/components/movies.dart';
+import 'package:sinema_uygulamasi/components/show_time.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
-// Class adını isteğin üzerine 'buyScreen' olarak güncelledim.
 class buyScreen extends StatefulWidget {
   final Movie? currentMovie;
   const buyScreen({super.key, this.currentMovie});
@@ -12,27 +14,81 @@ class buyScreen extends StatefulWidget {
   State<buyScreen> createState() => _buyScreenState();
 }
 
+List<Showtime> showtimes = [];
+Showtime? selectedShowtime;
+bool isLoadingShowtimes = false;
+
+class ApiService {
+  static Future<List<Showtime>> getShowtimes({
+    required int cinemaId,
+    required int movieId,
+  }) async {
+    final url = Uri.parse(
+      'http://127.0.0.1:8000/api/cinemas/$cinemaId/movies/$movieId/showtimes',
+    );
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final jsonData = json.decode(response.body);
+      final List showtimesJson = jsonData['data']['showtimes'];
+
+      return showtimesJson.map((json) => Showtime.fromJson(json)).toList();
+    } else {
+      throw Exception('Seanslar yüklenemedi');
+    }
+  }
+}
+
 class _buyScreenState extends State<buyScreen> {
-  // Bu değişken, SharedPreferences'tan sinema bilgisini yükledikten sonra dolacak.
   Cinema? currentCinema;
+  List<Showtime> showtimes = [];
+  Showtime? selectedShowtime;
+  bool isLoadingShowtimes = false;
 
   @override
   void initState() {
     super.initState();
-    // Sayfa ilk açıldığında hafızadaki sinema bilgisini yükle.
     _loadCinema();
+    _loadCinemaAndShowtimes();
   }
 
-  // RememberMoviePrefs kullanarak kaydedilmiş sinemayı getiren fonksiyon.
   void _loadCinema() async {
     Cinema? cinema = await RememberMoviePrefs.getRememberMovie();
-    // setState çağırarak arayüzün güncellenmesini sağlıyoruz.
     setState(() {
       currentCinema = cinema;
     });
   }
 
-  // Afişi gösteren widget (Hata durumunu yönetir).
+  Future<void> _loadCinemaAndShowtimes() async {
+    Cinema? cinema = await RememberMoviePrefs.getRememberMovie();
+    setState(() {
+      currentCinema = cinema;
+      isLoadingShowtimes = true;
+    });
+
+    if (cinema != null && widget.currentMovie != null) {
+      try {
+        final fetchedShowtimes = await ApiService.getShowtimes(
+          cinemaId: cinema.cinemaId,
+          movieId: widget.currentMovie!.id,
+        );
+        setState(() {
+          showtimes = fetchedShowtimes;
+          isLoadingShowtimes = false;
+        });
+      } catch (e) {
+        setState(() {
+          isLoadingShowtimes = false;
+        });
+        // İstersen hata mesajı göster
+      }
+    } else {
+      setState(() {
+        isLoadingShowtimes = false;
+      });
+    }
+  }
+
   Widget buildMoviePoster(String posterUrl) {
     if (posterUrl.isEmpty || posterUrl == 'N/A') {
       return Container(
@@ -155,6 +211,30 @@ class _buyScreenState extends State<buyScreen> {
                           style: TextStyle(color: Colors.grey.shade600),
                         ),
                       ),
+                      const SizedBox(height: 20),
+
+                      if (isLoadingShowtimes)
+                        const CircularProgressIndicator()
+                      else if (showtimes.isEmpty)
+                        const Text('Bu film için seans bulunmamaktadır.')
+                      else
+                        DropdownButton<Showtime>(
+                          hint: const Text('Seans seçiniz'),
+                          value: selectedShowtime,
+                          isExpanded: true,
+                          items: showtimes.map((showtime) {
+                            return DropdownMenuItem(
+                              value: showtime,
+                              child: Text(showtime.time),
+                            );
+                          }).toList(),
+                          onChanged: (Showtime? val) {
+                            setState(() {
+                              selectedShowtime = val;
+                            });
+                            // Seçilen showtime ile koltuk seçimini veya başka işlemleri yapabilirsin
+                          },
+                        ),
                     ],
                   )
                 else

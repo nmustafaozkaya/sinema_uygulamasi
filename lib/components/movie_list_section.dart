@@ -37,12 +37,10 @@ class MovieListSection extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) =>
-                    // Pass the new parameter to MovieDetails
-                    MovieDetails(
-                      currentMovie: movie,
-                      isNowShowing: isForNowShowing,
-                    ), // <-- USE THE NEW PARAMETER HERE
+                builder: (context) => MovieDetails(
+                  currentMovie: movie,
+                  isNowShowing: isForNowShowing,
+                ),
               ),
             );
           },
