@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:sinema_uygulamasi/api_connection/api_connection.dart';
 
 class AllCinemas extends StatefulWidget {
-  const AllCinemas({Key? key}) : super(key: key);
+  const AllCinemas({super.key});
 
   @override
   State<AllCinemas> createState() => _AllCinemasState();

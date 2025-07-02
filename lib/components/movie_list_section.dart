@@ -10,11 +10,11 @@ class MovieListSection extends StatelessWidget {
   final bool isForNowShowing;
 
   const MovieListSection({
-    Key? key,
+    super.key,
     required this.movies,
     required this.onMovieTap,
     required this.isForNowShowing,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

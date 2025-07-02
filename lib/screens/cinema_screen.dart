@@ -4,10 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:sinema_uygulamasi/components/cities.dart';
 import 'package:sinema_uygulamasi/components/cinemas.dart';
 import 'package:sinema_uygulamasi/components/movie_preferences.dart';
-import 'package:sinema_uygulamasi/components/movies.dart';
 import 'package:sinema_uygulamasi/constant/app_text_style.dart';
 import 'package:sinema_uygulamasi/api_connection/api_connection.dart';
-import 'package:sinema_uygulamasi/components/movie_list_section.dart';
 
 class CinemaScreen extends StatefulWidget {
   const CinemaScreen({super.key});
@@ -125,7 +123,7 @@ class _CinemaScreenState extends State<CinemaScreen> {
                                 ],
                               ),
                             );
-                          }).toList(),
+                          }),
                         ],
                         isExpanded: true,
                         dropdownColor: Colors.white,
@@ -146,6 +144,7 @@ class _CinemaScreenState extends State<CinemaScreen> {
                         subtitle: Text(cinema.cinemaAddress),
                         onTap: () async {
                           RememberMoviePrefs.saveRememberMovie(cinema);
+                          Navigator.pop(context, cinema);
                         },
                       );
                     },
