@@ -6,14 +6,14 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:sinema_uygulamasi/constant/app_text_style.dart';
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key, required this.currentUser});
   final User currentUser;
+  const ProfileScreen({super.key, required this.currentUser});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Profile', style: AppTextStyle.TOP_HEADER_),
+        title: const Text('Profilim', style: AppTextStyle.TOP_HEADER_),
         backgroundColor: Colors.white,
         centerTitle: true,
         elevation: 0.0,
@@ -34,7 +34,7 @@ class ProfileScreen extends StatelessWidget {
                       color: Colors.grey.shade300,
                       spreadRadius: 2,
                       blurRadius: 5,
-                      offset: Offset(0, 3),
+                      offset: const Offset(0, 3),
                     ),
                   ],
                 ),
@@ -51,7 +51,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      currentUser.userName,
+                      currentUser.name,
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -60,7 +60,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      currentUser.userEmail,
+                      currentUser.email,
                       style: const TextStyle(fontSize: 16, color: Colors.grey),
                     ),
                   ],
@@ -70,123 +70,86 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             const Text(
-              'Account Settings',
+              'Hesap Ayarları',
               style: AppTextStyle.MIDDLE_BOLD_HEADER,
             ),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.edit, color: Colors.blueAccent),
-              title: const Text('Edit Information'),
+              title: const Text('Bilgileri Düzenle'),
               trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Edit information page coming soon!'),
-                  ),
-                );
-              },
+              onTap: () {},
             ),
             ListTile(
               leading: const Icon(
                 FontAwesomeIcons.lock,
                 color: Colors.blueAccent,
               ),
-              title: const Text('Change Password'),
+              title: const Text('Şifre Değiştir'),
               trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Password change page coming soon!'),
-                  ),
-                );
-              },
+              onTap: () {},
             ),
             ListTile(
               leading: const Icon(
                 FontAwesomeIcons.creditCard,
                 color: Colors.blueAccent,
               ),
-              title: const Text('Payment Methods'),
+              title: const Text('Ödeme Yöntemleri'),
               trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Payment methods page coming soon!'),
-                  ),
-                );
-              },
+              onTap: () {},
             ),
             const SizedBox(height: 24),
 
-            const Text('My Movies', style: AppTextStyle.MIDDLE_BOLD_HEADER),
+            const Text('Filmlerim', style: AppTextStyle.MIDDLE_BOLD_HEADER),
             const Divider(),
             ListTile(
               leading: const Icon(
                 FontAwesomeIcons.film,
                 color: Colors.blueAccent,
               ),
-              title: const Text('View All Movies'),
+              title: const Text('Tüm Filmleri Görüntüle'),
               trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('All movies page coming soon!')),
-                );
-              },
+              onTap: () {},
             ),
             ListTile(
               leading: const Icon(Icons.favorite, color: Colors.redAccent),
-              title: const Text('Favorite Movies'),
+              title: const Text('Favori Filmler'),
               trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Favorite movies page coming soon!'),
-                  ),
-                );
-              },
+              onTap: () {},
             ),
             const SizedBox(height: 24),
 
-            const Text('My Tickets', style: AppTextStyle.MIDDLE_BOLD_HEADER),
+            const Text('Biletlerim', style: AppTextStyle.MIDDLE_BOLD_HEADER),
             const Divider(),
             ListTile(
               leading: const Icon(
                 FontAwesomeIcons.ticketSimple,
                 color: Colors.blueAccent,
               ),
-              title: const Text('Past Tickets'),
+              title: const Text('Geçmiş Biletler'),
               trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Past tickets page coming soon!'),
-                  ),
-                );
-              },
+              onTap: () {},
             ),
             ListTile(
               leading: const Icon(
                 FontAwesomeIcons.calendarCheck,
                 color: Colors.blueAccent,
               ),
-              title: const Text('Upcoming Tickets'),
+              title: const Text('Gelecek Biletler'),
               trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Upcoming tickets page coming soon!'),
-                  ),
-                );
-              },
+              onTap: () {},
             ),
             const SizedBox(height: 24),
 
+            // Çıkış Yap
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text('Log Out', style: TextStyle(color: Colors.red)),
+              title: const Text(
+                'Çıkış Yap',
+                style: TextStyle(color: Colors.red),
+              ),
               onTap: () async {
-                await RememberUserPrefs.removeUserInfo();
-
+                await UserPreferences.removeData();
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => const LoginScreen()),

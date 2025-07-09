@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:sinema_uygulamasi/screens/buy_screen.dart';
-import 'package:sinema_uygulamasi/components/cinemas.dart';
-import 'package:sinema_uygulamasi/components/movie_preferences.dart';
+// import 'package:sinema_uygulamasi/components/cinemas.dart'; // No longer needed
 import 'package:sinema_uygulamasi/components/movies.dart';
 
-class MovieDetails extends StatefulWidget {
+class MovieDetails extends StatelessWidget {
+  // Changed to StatelessWidget
   final Movie? currentMovie;
   final bool isNowShowing;
 
@@ -15,26 +15,7 @@ class MovieDetails extends StatefulWidget {
     required this.isNowShowing,
   });
 
-  @override
-  State<MovieDetails> createState() => _MovieDetailsState();
-}
-
-class _MovieDetailsState extends State<MovieDetails> {
-  Cinema? currentCinema;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadCinema();
-  }
-
-  void _loadCinema() async {
-    currentCinema = await RememberMoviePrefs.getRememberMovie();
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
+  // Helper function for building the star rating
   Widget _buildStarRating(double rating, {double size = 24}) {
     int fullStars = rating.floor();
     bool hasHalfStar = (rating - fullStars) >= 0.5;
@@ -55,6 +36,7 @@ class _MovieDetailsState extends State<MovieDetails> {
     return Row(mainAxisSize: MainAxisSize.min, children: stars);
   }
 
+  // Helper function for building the movie poster
   Widget _buildMoviePoster(String posterUrl) {
     if (posterUrl.isEmpty || posterUrl == 'N/A') {
       return Container(
@@ -86,19 +68,20 @@ class _MovieDetailsState extends State<MovieDetails> {
 
   @override
   Widget build(BuildContext context) {
-    final movie = widget.currentMovie;
+    // Access properties directly, without 'widget.'
+    final movie = currentMovie;
 
     if (movie == null) {
       return Scaffold(
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(kToolbarHeight),
+          preferredSize: const Size.fromHeight(kToolbarHeight),
           child: AppBar(
             backgroundColor: Colors.white,
             elevation: 0,
             foregroundColor: Colors.black,
           ),
         ),
-        body: Center(child: CircularProgressIndicator()),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -110,25 +93,17 @@ class _MovieDetailsState extends State<MovieDetails> {
     Color buttonColor;
     Color buttonTextColor = Colors.white;
 
-    if (widget.isNowShowing) {
+    if (isNowShowing) {
       buttonText = "Buy Tickets";
       buttonColor = Colors.amber;
+      // The button now directly navigates to the BuyScreen without checking for a cinema
       buttonOnPressed = () {
-        if (currentCinema != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => buyScreen(currentMovie: movie),
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Please select a cinema first.'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BuyScreen(currentMovie: movie),
+          ),
+        );
       };
     } else {
       buttonText = "Buy Tickets (Currently Unavailable)";
@@ -202,7 +177,7 @@ class _MovieDetailsState extends State<MovieDetails> {
               children: [
                 const Icon(FontAwesomeIcons.calendarDay, size: 20),
                 const SizedBox(width: 10),
-                Text("Release Date: ${movie.released}"),
+                Text("Release Date: ${movie.releaseDate}"),
               ],
             ),
             const SizedBox(height: 10),

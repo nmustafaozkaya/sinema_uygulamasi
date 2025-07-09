@@ -2,33 +2,46 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sinema_uygulamasi/components/user.dart';
 
-class RememberUserPrefs {
-  static Future<void> saveRememberUser(User userInfo) async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    String userJsonData = jsonEncode({
-      'user_id': userInfo.userId,
-      'user_name': userInfo.userName,
-      'user_email': userInfo.userEmail,
-      'user_role_id': userInfo.userRoleId,
-      'cinema_id': userInfo.cinemaId,
-      'access_token': userInfo.accessToken,
-    });
-    await preferences.setString('currentUser', userJsonData);
+class UserPreferences {
+  static Future<void> saveData(User user) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('currentUser', jsonEncode(user.toJson()));
   }
 
-  static Future<User?> readUserInfo() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    String? userDataString = preferences.getString('currentUser');
+  static Future<User?> readData() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? userJson = prefs.getString('currentUser');
 
-    if (userDataString != null) {
-      Map<String, dynamic> userMap = jsonDecode(userDataString);
-      return User.fromJson(userMap);
+    if (userJson != null) {
+      return User.fromJson(jsonDecode(userJson));
     }
     return null;
   }
 
-  static Future<void> removeUserInfo() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    await preferences.remove('currentUser');
+  static Future<void> removeData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('currentUser');
+    await prefs.remove('token');
+  }
+
+  // Token için ayrı fonksiyonlar
+  static Future<void> saveToken(String token) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('token', token);
+  }
+
+  static Future<String?> getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token');
+  }
+
+  static Future<void> setRememberMe(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('rememberMe', value);
+  }
+
+  static Future<bool> getRememberMe() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('rememberMe') ?? false;
   }
 }

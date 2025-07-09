@@ -1,11 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:sinema_uygulamasi/components/cities.dart';
-import 'package:sinema_uygulamasi/components/cinemas.dart';
-import 'package:sinema_uygulamasi/components/movie_preferences.dart';
 import 'package:sinema_uygulamasi/constant/app_text_style.dart';
 import 'package:sinema_uygulamasi/api_connection/api_connection.dart';
+import 'package:sinema_uygulamasi/components/cinemas.dart';
 
 class CinemaScreen extends StatefulWidget {
   const CinemaScreen({super.key});
@@ -15,60 +13,71 @@ class CinemaScreen extends StatefulWidget {
 }
 
 class _CinemaScreenState extends State<CinemaScreen> {
-  List<City> cities = [];
-  List<Cinema> allCinemas = [];
-  List<Cinema> displayedCinemas = [];
-  int? selectedCityId;
-  bool isLoading = false;
+  List<Cinema> _allCinemas = [];
+  List<Cinema> _filteredCinemas = [];
+  List<String> _cities = ['All'];
+  String _selectedCity = 'All';
+  final TextEditingController _searchController = TextEditingController();
+  bool _isLoading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    fetchCities();
-    fetchAllCinemas();
+    fetchCinemas();
   }
 
-  Future<void> fetchCities() async {
-    final response = await http.get(Uri.parse(ApiConnection.cities));
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['status'] == true) {
-        setState(() {
-          cities = (data['data'] as List)
-              .map((json) => City.fromJson(json))
+  Future<void> fetchCinemas() async {
+    try {
+      final response = await http.get(Uri.parse(ApiConnection.cinemas));
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+
+        if (jsonResponse['success'] == true && jsonResponse['data'] is List) {
+          final List<dynamic> data = jsonResponse['data'];
+          final cinemas = data
+              .map((cinemaJson) => Cinema.fromJson(cinemaJson))
               .toList();
-        });
-      }
-    }
-  }
 
-  Future<void> fetchAllCinemas() async {
-    setState(() => isLoading = true);
-    final response = await http.get(Uri.parse(ApiConnection.allCinemasapi));
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['status'] == true) {
-        setState(() {
-          allCinemas = (data['data'] as List)
-              .map((json) => Cinema.fromJson(json))
-              .toList();
-          displayedCinemas = allCinemas;
-        });
-      }
-    }
-    setState(() => isLoading = false);
-  }
+          final cityNames = cinemas.map((e) => e.cityName).toSet().toList()
+            ..sort();
 
-  void filterCinemasByCity(int? cityId) {
-    setState(() {
-      selectedCityId = cityId;
-      if (cityId == null) {
-        displayedCinemas = allCinemas;
+          setState(() {
+            _allCinemas = cinemas;
+            _filteredCinemas = cinemas;
+            _cities = ['All', ...cityNames];
+            _isLoading = false;
+          });
+        } else {
+          throw Exception('Beklenmeyen API yanıtı formatı.');
+        }
       } else {
-        displayedCinemas = allCinemas
-            .where((cinema) => cinema.cityId == cityId)
-            .toList();
+        throw Exception('Sunucu hatası: ${response.statusCode}');
       }
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _filterCinemas(String query) {
+    final searchLower = query.toLowerCase();
+
+    final filtered = _allCinemas.where((cinema) {
+      final matchesSearch =
+          cinema.cinemaName.toLowerCase().contains(searchLower) ||
+          cinema.cinemaAddress.toLowerCase().contains(searchLower);
+      final matchesCity =
+          _selectedCity == 'All' || cinema.cityName == _selectedCity;
+
+      return matchesSearch && matchesCity;
+    }).toList();
+
+    setState(() {
+      _filteredCinemas = filtered;
     });
   }
 
@@ -76,79 +85,81 @@ class _CinemaScreenState extends State<CinemaScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cinemas', style: AppTextStyle.TOP_HEADER_),
+        title: const Text('Sinema Salonları', style: AppTextStyle.TOP_HEADER_),
       ),
-      body: isLoading
+      body: _isLoading
           ? const Center(child: CircularProgressIndicator())
+          : _error != null
+          ? Center(child: Text('Hata: $_error'))
           : Column(
               children: [
                 Padding(
                   padding: const EdgeInsets.all(12.0),
-                  child: DropdownButtonHideUnderline(
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: Colors.grey.shade400),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: DropdownButton<int?>(
-                        value: selectedCityId,
-                        hint: Text("Şehir Seçin"),
-                        onChanged: (value) {
-                          filterCinemasByCity(value);
-                        },
-                        items: [
-                          DropdownMenuItem<int?>(
-                            value: null,
-                            child: Row(
-                              children: [
-                                Icon(Icons.public, color: Colors.black),
-                                SizedBox(width: 8),
-                                Text("Tümü"),
-                              ],
-                            ),
-                          ),
-                          ...cities.map((city) {
-                            return DropdownMenuItem<int?>(
-                              value: city.id,
-                              child: Row(
-                                children: [
-                                  Icon(Icons.location_city, color: Colors.blue),
-                                  SizedBox(width: 8),
-                                  Text(city.name),
-                                ],
-                              ),
-                            );
-                          }),
-                        ],
-                        isExpanded: true,
-                        dropdownColor: Colors.white,
-                      ),
+                  child: DropdownButtonFormField<String>(
+                    value: _selectedCity,
+                    decoration: const InputDecoration(
+                      labelText: 'Filter by City',
+                      border: OutlineInputBorder(),
                     ),
+                    items: _cities
+                        .map(
+                          (city) =>
+                              DropdownMenuItem(value: city, child: Text(city)),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() => _selectedCity = value!);
+                      _filterCinemas(_searchController.text);
+                    },
                   ),
                 ),
 
-                const Divider(),
-
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: displayedCinemas.length,
-                    itemBuilder: (context, index) {
-                      final cinema = displayedCinemas[index];
-                      return ListTile(
-                        title: Text(cinema.cinemaName),
-                        subtitle: Text(cinema.cinemaAddress),
-                        onTap: () async {
-                          RememberMoviePrefs.saveRememberMovie(cinema);
-                          Navigator.pop(context, cinema);
-                        },
-                      );
-                    },
+                // Arama kutusu
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
                   ),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: const InputDecoration(
+                      hintText: 'Search Cinema',
+                      prefixIcon: Icon(Icons.search),
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: _filterCinemas,
+                  ),
+                ),
+
+                // Liste
+                Expanded(
+                  child: _filteredCinemas.isEmpty
+                      ? const Center(
+                          child: Text('Aramanıza uygun sinema bulunamadı.'),
+                        )
+                      : ListView.builder(
+                          itemCount: _filteredCinemas.length,
+                          itemBuilder: (context, index) {
+                            final cinema = _filteredCinemas[index];
+                            return Card(
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              child: ListTile(
+                                title: Text(
+                                  cinema.cinemaName,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  '${cinema.cityName} • ${cinema.cinemaAddress}',
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                 ),
               ],
             ),

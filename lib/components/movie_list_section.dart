@@ -32,7 +32,7 @@ class MovieListSection extends StatelessWidget {
               ? Image.network(movie.poster, width: 50, fit: BoxFit.cover)
               : const Icon(Icons.movie),
           title: Text(movie.title),
-          subtitle: Text(movie.released),
+          subtitle: Text(movie.releaseDate),
           onTap: () {
             Navigator.push(
               context,

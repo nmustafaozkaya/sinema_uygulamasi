@@ -3,7 +3,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:sinema_uygulamasi/api_connection/api_connection.dart';
 import 'package:sinema_uygulamasi/components/auto_ImageSlider.dart';
 import 'package:sinema_uygulamasi/components/promotions_screen.dart';
-import 'package:sinema_uygulamasi/components/user.dart';
 import 'package:sinema_uygulamasi/components/movies.dart';
 import 'package:sinema_uygulamasi/screens/movie_details.dart';
 import 'package:sinema_uygulamasi/components/get_promotions.dart';
@@ -12,7 +11,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 Widget buildMoviePoster(String posterUrl) {
-  if (posterUrl.isEmpty || posterUrl == 'N/A') {
+  if (posterUrl.isEmpty ||
+      posterUrl == 'N/A' ||
+      (!posterUrl.endsWith('.jpg') && !posterUrl.endsWith('.png'))) {
     return Container(
       color: Colors.grey.shade300,
       child: const Center(
@@ -39,15 +40,18 @@ Future<List<Movie>> fetchMovies(String url) async {
   final response = await http.get(Uri.parse(url));
 
   if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
-    if (data['status'] == true && data['data'] is List) {
-      return (data['data'] as List)
+    final Map<String, dynamic> data = jsonDecode(response.body);
+
+    if (data['success'] == true &&
+        data['data'] is Map<String, dynamic> &&
+        data['data']['data'] is List) {
+      final List<dynamic> moviesJson = data['data']['data'];
+
+      return moviesJson
           .map((json) => Movie.fromJson(json as Map<String, dynamic>))
           .toList();
-    } else if (data['status'] == true && data['data'] is Map) {
-      return [Movie.fromJson(data['data'] as Map<String, dynamic>)];
     } else {
-      throw Exception('API response format error or status is false: $data');
+      throw Exception('API response format error or success is false: $data');
     }
   } else {
     throw Exception(
@@ -57,8 +61,7 @@ Future<List<Movie>> fetchMovies(String url) async {
 }
 
 class HomeScreen extends StatelessWidget {
-  final User currentUser;
-  const HomeScreen({super.key, required this.currentUser});
+  const HomeScreen({super.key});
 
   // Vizyondaki Filmler bölümü
   Widget showMoviesContent(BuildContext context) {

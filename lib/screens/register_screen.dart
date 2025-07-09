@@ -21,72 +21,77 @@ class _RegisterScreenState extends State<RegisterScreen> {
   var nameController = TextEditingController();
   var passwordController = TextEditingController();
   var RepasswordController = TextEditingController();
-
+  var phoneController = TextEditingController();
   Future<void> registerAndSaveUserRecord() async {
+    // Şifrelerin eşleşip eşleşmediğini kontrol et
+    if (passwordController.text.trim() != RepasswordController.text.trim()) {
+      Fluttertoast.showToast(msg: "Şifreler uyuşmuyor!");
+      return;
+    }
+
     var body = jsonEncode({
       'name': nameController.text.trim(),
       'email': emailController.text.trim(),
       'password': passwordController.text.trim(),
       'password_confirmation': RepasswordController.text.trim(),
+      'phone': phoneController.text.trim(),
     });
 
     try {
       var res = await http.post(
         Uri.parse(ApiConnection.signUp),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json', // Bu satır önemlidir
+        },
         body: body,
       );
 
-      var resBodyofSignUp = jsonDecode(res.body);
+      var resBodyOfSignUp = jsonDecode(res.body);
 
-      if (res.statusCode == 200) {
-        if (resBodyofSignUp['status'] == true) {
-          Fluttertoast.showToast(msg: 'Successfully registered!');
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        if (resBodyOfSignUp['success'] == true) {
+          Fluttertoast.showToast(msg: 'Kayıt başarılı!');
 
-          var userData = resBodyofSignUp['data'];
+          var userData = resBodyOfSignUp['data']['user'];
+
           User user = User.fromJson(userData);
-          await RememberUserPrefs.saveRememberUser(user);
 
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => LoginScreen()),
-          );
+          await UserPreferences.saveData(user);
 
-          setState(() {
-            nameController.clear();
-            emailController.clear();
-            passwordController.clear();
-            RepasswordController.clear();
-          });
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const LoginScreen()),
+            );
+          }
         } else {
           Fluttertoast.showToast(
-            msg: 'Error occurred: ${resBodyofSignUp['error']}',
+            msg:
+                'Hata: ${resBodyOfSignUp['message'] ?? 'Bilinmeyen bir hata oluştu.'}',
           );
         }
       } else if (res.statusCode == 422) {
-        // Validation errors
-        if (resBodyofSignUp['errors'] != null) {
-          if (resBodyofSignUp['errors']['email'] != null) {
-            Fluttertoast.showToast(
-              msg: 'Email error: ${resBodyofSignUp['errors']['email'][0]}',
-            );
-          }
-          if (resBodyofSignUp['errors']['password'] != null) {
-            Fluttertoast.showToast(
-              msg:
-                  'Password error: ${resBodyofSignUp['errors']['password'][0]}',
-            );
-          }
-        } else {
-          Fluttertoast.showToast(msg: 'Validation error');
-        }
-      } else if (res.statusCode == 401) {
-        Fluttertoast.showToast(msg: 'Unauthorized. Check your request.');
+        // Sunucudan gelen validasyon hatalarını daha anlaşılır göster
+        final errors = resBodyOfSignUp['errors'] as Map<String, dynamic>;
+        String errorMessage = "Lütfen hataları düzeltin:\n";
+        errors.forEach((key, value) {
+          errorMessage += "- ${value[0]}\n";
+        });
+        Fluttertoast.showToast(
+          msg: errorMessage,
+          toastLength: Toast.LENGTH_LONG,
+        );
       } else {
-        Fluttertoast.showToast(msg: 'Server error: ${res.statusCode}');
+        Fluttertoast.showToast(msg: 'Sunucu hatası: ${res.statusCode}');
       }
     } catch (e) {
-      Fluttertoast.showToast(msg: e.toString());
+      print(
+        "Hata Detayı: ${e.toString()}",
+      ); // Hatanın detayını konsolda görmek için
+      Fluttertoast.showToast(
+        msg: "İşlem sırasında bir hata oluştu. Lütfen tekrar deneyin.",
+      );
     }
   }
 
@@ -123,6 +128,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       isPassword: false,
                       onChange: (value) {},
                     ),
+                    // 3. Add the input field to the UI
+                    RoundedInputField(
+                      controller: phoneController,
+                      hintText: 'Phone',
+                      icon: Icons.phone,
+                      isEmail: false,
+                      isPassword: false,
+                      onChange: (value) {},
+                    ),
                     RoundedInputField(
                       controller: passwordController,
                       hintText: 'Password',
@@ -156,7 +170,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => LoginScreen(),
+                            builder: (context) => const LoginScreen(),
                           ),
                         );
                       },

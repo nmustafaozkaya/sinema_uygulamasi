@@ -1,28 +1,43 @@
+// user.dart
+
 class User {
-  final int userId;
-  final String userName;
-  final String userEmail;
-  final int userRoleId;
+  final int id;
+  final String name;
+  final String email;
+  final int roleId;
   final int? cinemaId;
-  final String accessToken;
+  final bool isActive;
 
   User({
-    required this.userId,
-    required this.userName,
-    required this.userEmail,
-    required this.userRoleId,
+    required this.id,
+    required this.name,
+    required this.email,
+    required this.roleId,
     this.cinemaId,
-    required this.accessToken,
+    required this.isActive,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      userId: json['user_id'] ?? 0,
-      userName: json['user_name'] ?? json['name'] ?? '',
-      userEmail: json['user_email'] ?? json['email'] ?? '',
-      userRoleId: json['user_role_id'] ?? 0,
+      id: json['id'] ?? 0,
+      name: json['name'] ?? '',
+      email: json['email'] ?? '',
+      roleId: json['role_id'] ?? 0,
       cinemaId: json['cinema_id'],
-      accessToken: json['access_token'] ?? '',
+      isActive: json['is_active'] is bool
+          ? json['is_active']
+          : json['is_active'] == 1,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'email': email,
+      'role_id': roleId,
+      'cinema_id': cinemaId,
+      'is_active': isActive,
+    };
   }
 }

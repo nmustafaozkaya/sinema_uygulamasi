@@ -48,17 +48,23 @@ class _LoginScreenState extends State<LoginScreen> {
             msg: 'Your email or password is wrong! Please try Again',
           );
         }
-        if (resBody['status'] == true) {
+        if (resBody['success'] == true) {
           Fluttertoast.showToast(msg: 'You are logged-in Successfully.');
           emailController.clear();
           passwordController.clear();
-          var user = User.fromJson(resBody['data']);
+
+          var user = User.fromJson(resBody['data']['user']);
+
+          // rememberMe'ye göre kayıt
           if (rememberMe) {
-            await RememberUserPrefs.saveRememberUser(user);
+            await UserPreferences.saveData(user);
+            await UserPreferences.saveToken(resBody['data']['token']);
+            await UserPreferences.setRememberMe(true);
           } else {
-            await RememberUserPrefs.removeUserInfo();
+            await UserPreferences.setRememberMe(false);
           }
-          Future.delayed(const Duration(seconds: 2), () {
+
+          Future.delayed(const Duration(seconds: 1), () {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
@@ -67,7 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
             );
           });
         } else {
-          Fluttertoast.showToast(msg: resBody['status'] ?? 'Giriş başarısız');
+          Fluttertoast.showToast(msg: resBody['success'] ?? 'Giriş başarısız');
         }
       } else {
         Fluttertoast.showToast(msg: 'Sunucu hatası: ${res.statusCode}');

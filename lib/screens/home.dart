@@ -20,7 +20,7 @@ int aktifOge = 0;
 Widget gecerliSayfa(int aktif, User user) {
   switch (aktif) {
     case 0:
-      return HomeScreen(currentUser: user);
+      return HomeScreen();
     case 1:
       return moviesScreen(isComingSoon: false);
     case 2:
@@ -28,7 +28,7 @@ Widget gecerliSayfa(int aktif, User user) {
     case 3:
       return ProfileScreen(currentUser: user);
     default:
-      return HomeScreen(currentUser: user);
+      return HomeScreen();
   }
 }
 

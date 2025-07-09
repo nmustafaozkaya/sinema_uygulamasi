@@ -35,7 +35,6 @@ class Showtime {
     );
   }
 
-  // 👇 Bunları ekle
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
