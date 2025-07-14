@@ -4,6 +4,7 @@ import 'package:sinema_uygulamasi/api_connection/api_connection.dart';
 import 'package:sinema_uygulamasi/components/auto_ImageSlider.dart';
 import 'package:sinema_uygulamasi/components/promotions_screen.dart';
 import 'package:sinema_uygulamasi/components/movies.dart';
+import 'package:sinema_uygulamasi/constant/app_color_style.dart';
 import 'package:sinema_uygulamasi/screens/movie_details.dart';
 import 'package:sinema_uygulamasi/components/get_promotions.dart';
 import 'package:sinema_uygulamasi/screens/movies_screen.dart';
@@ -75,7 +76,11 @@ class HomeScreen extends StatelessWidget {
               padding: EdgeInsets.only(left: 10.0),
               child: Text(
                 'Now Showing Movies',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColorStyle.textPrimary,
+                ),
               ),
             ),
             GestureDetector(
@@ -96,6 +101,7 @@ class HomeScreen extends StatelessWidget {
                     fontSize: 20,
                     decoration: TextDecoration.underline,
                     fontWeight: FontWeight.bold,
+                    color: AppColorStyle.textSecondary,
                   ),
                 ),
               ),
@@ -174,7 +180,11 @@ class HomeScreen extends StatelessWidget {
               padding: EdgeInsets.only(left: 10.0),
               child: Text(
                 'Coming Soon Movies',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColorStyle.textPrimary,
+                ),
               ),
             ),
             GestureDetector(
@@ -195,6 +205,7 @@ class HomeScreen extends StatelessWidget {
                     fontSize: 20,
                     decoration: TextDecoration.underline,
                     fontWeight: FontWeight.bold,
+                    color: AppColorStyle.textSecondary,
                   ),
                 ),
               ),
@@ -272,7 +283,11 @@ class HomeScreen extends StatelessWidget {
               padding: EdgeInsets.only(left: 10.0),
               child: Text(
                 'Promotions',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColorStyle.textPrimary,
+                ),
               ),
             ),
             GestureDetector(
@@ -292,6 +307,7 @@ class HomeScreen extends StatelessWidget {
                     fontSize: 20,
                     decoration: TextDecoration.underline,
                     fontWeight: FontWeight.bold,
+                    color: AppColorStyle.textSecondary,
                   ),
                 ),
               ),
@@ -336,9 +352,9 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColorStyle.scaffoldBackground,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColorStyle.appBarColor,
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: Builder(
@@ -372,7 +388,7 @@ class HomeScreen extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: AppColorStyle.textPrimary,
                 ),
               ),
             ),

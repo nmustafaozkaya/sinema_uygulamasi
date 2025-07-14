@@ -3,7 +3,7 @@ import 'package:sinema_uygulamasi/components/user.dart';
 import 'package:sinema_uygulamasi/components/user_preferences.dart';
 import 'package:sinema_uygulamasi/screens/login_screen.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:sinema_uygulamasi/constant/app_text_style.dart';
+import 'package:sinema_uygulamasi/constant/app_color_style.dart';
 
 class ProfileScreen extends StatelessWidget {
   final User currentUser;
@@ -12,11 +12,19 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColorStyle.scaffoldBackground,
       appBar: AppBar(
-        title: const Text('Profilim', style: AppTextStyle.TOP_HEADER_),
-        backgroundColor: Colors.white,
+        title: const Text(
+          'Profil',
+          style: TextStyle(
+            color: AppColorStyle.textPrimary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: AppColorStyle.appBarColor,
         centerTitle: true,
         elevation: 0.0,
+        iconTheme: const IconThemeData(color: AppColorStyle.textPrimary),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -27,26 +35,18 @@ class ProfileScreen extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(20.0),
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: AppColorStyle.appBarColor,
                   borderRadius: BorderRadius.circular(15.0),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.shade300,
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
                 ),
                 child: Column(
                   children: [
                     CircleAvatar(
                       radius: 50,
-                      backgroundColor: Colors.grey[200],
+                      backgroundColor: AppColorStyle.primaryAccent,
                       child: Icon(
                         FontAwesomeIcons.user,
-                        size: 60,
-                        color: Colors.grey[700],
+                        size: 50,
+                        color: AppColorStyle.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -55,98 +55,152 @@ class ProfileScreen extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: AppColorStyle.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       currentUser.email,
-                      style: const TextStyle(fontSize: 16, color: Colors.grey),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: AppColorStyle.textSecondary,
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 24),
-
+            const SizedBox(height: 30),
             const Text(
               'Hesap Ayarları',
-              style: AppTextStyle.MIDDLE_BOLD_HEADER,
+              style: TextStyle(
+                color: AppColorStyle.textPrimary,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
             ),
-            const Divider(),
+            const Divider(color: AppColorStyle.primaryAccent),
+
             ListTile(
-              leading: const Icon(Icons.edit, color: Colors.blueAccent),
-              title: const Text('Bilgileri Düzenle'),
-              trailing: const Icon(Icons.arrow_forward_ios),
+              leading: const Icon(
+                Icons.edit,
+                color: AppColorStyle.secondaryAccent,
+              ),
+              title: const Text(
+                'Bilgilerini Düzenle',
+                style: TextStyle(color: AppColorStyle.textPrimary),
+              ),
+              trailing: const Icon(
+                Icons.arrow_forward_ios,
+                color: AppColorStyle.textSecondary,
+              ),
               onTap: () {},
             ),
             ListTile(
               leading: const Icon(
                 FontAwesomeIcons.lock,
-                color: Colors.blueAccent,
+                color: AppColorStyle.secondaryAccent,
               ),
-              title: const Text('Şifre Değiştir'),
-              trailing: const Icon(Icons.arrow_forward_ios),
+              title: const Text(
+                'Şifreni Değiştir',
+                style: TextStyle(color: AppColorStyle.textPrimary),
+              ),
+              trailing: const Icon(
+                Icons.arrow_forward_ios,
+                color: AppColorStyle.textSecondary,
+              ),
               onTap: () {},
             ),
             ListTile(
               leading: const Icon(
                 FontAwesomeIcons.creditCard,
-                color: Colors.blueAccent,
+                color: AppColorStyle.secondaryAccent,
               ),
-              title: const Text('Ödeme Yöntemleri'),
-              trailing: const Icon(Icons.arrow_forward_ios),
+              title: const Text(
+                'Ödeme Yöntemleri',
+                style: TextStyle(color: AppColorStyle.textPrimary),
+              ),
+              trailing: const Icon(
+                Icons.arrow_forward_ios,
+                color: AppColorStyle.textSecondary,
+              ),
               onTap: () {},
             ),
             const SizedBox(height: 24),
 
-            const Text('Filmlerim', style: AppTextStyle.MIDDLE_BOLD_HEADER),
-            const Divider(),
-            ListTile(
-              leading: const Icon(
-                FontAwesomeIcons.film,
-                color: Colors.blueAccent,
+            const Text(
+              'Filmlerim',
+              style: TextStyle(
+                color: AppColorStyle.textPrimary,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
               ),
-              title: const Text('Tüm Filmleri Görüntüle'),
-              trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {},
             ),
+            const Divider(color: AppColorStyle.primaryAccent),
+
             ListTile(
               leading: const Icon(Icons.favorite, color: Colors.redAccent),
-              title: const Text('Favori Filmler'),
-              trailing: const Icon(Icons.arrow_forward_ios),
+              title: const Text(
+                'Favori Filmler',
+                style: TextStyle(color: AppColorStyle.textPrimary),
+              ),
+              trailing: const Icon(
+                Icons.arrow_forward_ios,
+                color: AppColorStyle.textSecondary,
+              ),
               onTap: () {},
             ),
             const SizedBox(height: 24),
 
-            const Text('Biletlerim', style: AppTextStyle.MIDDLE_BOLD_HEADER),
-            const Divider(),
+            const Text(
+              'Biletlerim',
+              style: TextStyle(
+                color: AppColorStyle.textPrimary,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+            const Divider(color: AppColorStyle.primaryAccent),
             ListTile(
               leading: const Icon(
                 FontAwesomeIcons.ticketSimple,
-                color: Colors.blueAccent,
+                color: AppColorStyle.secondaryAccent,
               ),
-              title: const Text('Geçmiş Biletler'),
-              trailing: const Icon(Icons.arrow_forward_ios),
+              title: const Text(
+                'Geçmiş Biletler',
+                style: TextStyle(color: AppColorStyle.textPrimary),
+              ),
+              trailing: const Icon(
+                Icons.arrow_forward_ios,
+                color: AppColorStyle.textSecondary,
+              ),
               onTap: () {},
             ),
             ListTile(
               leading: const Icon(
                 FontAwesomeIcons.calendarCheck,
-                color: Colors.blueAccent,
+                color: AppColorStyle.secondaryAccent,
               ),
-              title: const Text('Gelecek Biletler'),
-              trailing: const Icon(Icons.arrow_forward_ios),
+              title: const Text(
+                'Gelecek Biletler',
+                style: TextStyle(color: AppColorStyle.textPrimary),
+              ),
+              trailing: const Icon(
+                Icons.arrow_forward_ios,
+                color: AppColorStyle.textSecondary,
+              ),
               onTap: () {},
             ),
             const SizedBox(height: 24),
 
-            // Çıkış Yap
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
               title: const Text(
                 'Çıkış Yap',
-                style: TextStyle(color: Colors.red),
+                style: TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               onTap: () async {
                 await UserPreferences.removeData();

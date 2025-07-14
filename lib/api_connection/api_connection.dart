@@ -7,12 +7,10 @@ class ApiConnection {
   static String cinemas = '$hostConnection/cinemas';
 
   static const movies = '$hostConnection/movies';
-  static const nowPlaying = '$hostConnection/movies/now-playing';
-  static String movieById(int id) => '$hostConnection/movies/$id';
   static const futureMovies = '$hostConnection/future-movies';
 
-  static String showTime(int cityId, int cinemaId, int movieId) =>
-      '$hostConnection/cities/$cityId/cinemas/$cinemaId/movies/$movieId/showtimes';
-  static String seats(int showTimeId) =>
-      '$hostConnection/showtimes/$showTimeId/seats';
+  static const showtimes = "$hostConnection/showtimes";
+  static const halls = "$hostConnection/halls";
+  static String apiResponseString(int i) =>
+      "$hostConnection/showtimes/$i/available-seats";
 }

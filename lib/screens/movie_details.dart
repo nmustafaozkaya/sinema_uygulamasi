@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:sinema_uygulamasi/constant/app_color_style.dart';
 import 'package:sinema_uygulamasi/screens/buy_screen.dart';
-// import 'package:sinema_uygulamasi/components/cinemas.dart'; // No longer needed
 import 'package:sinema_uygulamasi/components/movies.dart';
+import 'package:sinema_uygulamasi/components/cinemas.dart';
+import 'package:sinema_uygulamasi/components/showtimes.dart';
 
-class MovieDetails extends StatelessWidget {
-  // Changed to StatelessWidget
+class MovieDetails extends StatefulWidget {
+  static const String routeName = '/movie-details';
+
   final Movie? currentMovie;
   final bool isNowShowing;
 
@@ -15,7 +18,14 @@ class MovieDetails extends StatelessWidget {
     required this.isNowShowing,
   });
 
-  // Helper function for building the star rating
+  @override
+  State<MovieDetails> createState() => _MovieDetailsState();
+}
+
+class _MovieDetailsState extends State<MovieDetails> {
+  Cinema? selectedCinema;
+  Showtime? selectedShowtime;
+
   Widget _buildStarRating(double rating, {double size = 24}) {
     int fullStars = rating.floor();
     bool hasHalfStar = (rating - fullStars) >= 0.5;
@@ -36,14 +46,17 @@ class MovieDetails extends StatelessWidget {
     return Row(mainAxisSize: MainAxisSize.min, children: stars);
   }
 
-  // Helper function for building the movie poster
   Widget _buildMoviePoster(String posterUrl) {
     if (posterUrl.isEmpty || posterUrl == 'N/A') {
       return Container(
         height: 300,
-        color: Colors.grey.shade300,
+        color: AppColorStyle.appBarColor,
         child: const Center(
-          child: Icon(Icons.image_not_supported, size: 100, color: Colors.grey),
+          child: Icon(
+            Icons.image_not_supported,
+            size: 100,
+            color: AppColorStyle.secondaryAccent,
+          ),
         ),
       );
     } else {
@@ -55,9 +68,13 @@ class MovieDetails extends StatelessWidget {
           errorBuilder: (context, error, stackTrace) {
             return Container(
               height: 300,
-              color: Colors.grey.shade300,
+              color: AppColorStyle.appBarColor,
               child: const Center(
-                child: Icon(Icons.broken_image, size: 100, color: Colors.grey),
+                child: Icon(
+                  Icons.broken_image,
+                  size: 100,
+                  color: AppColorStyle.secondaryAccent,
+                ),
               ),
             );
           },
@@ -68,20 +85,18 @@ class MovieDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Access properties directly, without 'widget.'
-    final movie = currentMovie;
+    final movie = widget.currentMovie;
 
     if (movie == null) {
       return Scaffold(
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(kToolbarHeight),
-          child: AppBar(
-            backgroundColor: Colors.white,
-            elevation: 0,
-            foregroundColor: Colors.black,
-          ),
+        backgroundColor: AppColorStyle.scaffoldBackground,
+        appBar: AppBar(
+          backgroundColor: AppColorStyle.appBarColor,
+          elevation: 0,
         ),
-        body: const Center(child: CircularProgressIndicator()),
+        body: const Center(
+          child: CircularProgressIndicator(color: AppColorStyle.primaryAccent),
+        ),
       );
     }
 
@@ -91,32 +106,47 @@ class MovieDetails extends StatelessWidget {
     VoidCallback? buttonOnPressed;
     String buttonText;
     Color buttonColor;
-    Color buttonTextColor = Colors.white;
+    Color buttonTextColor = AppColorStyle.textPrimary;
 
-    if (isNowShowing) {
-      buttonText = "Buy Tickets";
+    if (widget.isNowShowing) {
+      buttonText = "Buy Ticket";
       buttonColor = Colors.amber;
-      // The button now directly navigates to the BuyScreen without checking for a cinema
-      buttonOnPressed = () {
-        Navigator.push(
+      buttonOnPressed = () async {
+        final result = await Navigator.push<Map<String, dynamic>>(
           context,
           MaterialPageRoute(
-            builder: (context) => BuyScreen(currentMovie: movie),
+            builder: (context) => BuyScreen(
+              currentMovie: movie,
+              currentCinema: null,
+              selectedShowtime: null,
+            ),
           ),
         );
+
+        if (result != null && mounted) {
+          setState(() {
+            selectedCinema = result['cinema'];
+            selectedShowtime = result['showtime'];
+          });
+        }
       };
     } else {
-      buttonText = "Buy Tickets (Currently Unavailable)";
-      buttonColor = Colors.grey;
+      buttonText = "Buy Ticket (Coming Soon)";
+      buttonColor = AppColorStyle.primaryAccent;
+      buttonTextColor = AppColorStyle.textSecondary;
       buttonOnPressed = null;
     }
 
     return Scaffold(
+      backgroundColor: AppColorStyle.scaffoldBackground,
       appBar: AppBar(
-        title: Text(movie.title),
-        backgroundColor: Colors.white,
+        title: Text(
+          "Movie Details",
+          style: const TextStyle(color: AppColorStyle.textPrimary),
+        ),
+        backgroundColor: AppColorStyle.appBarColor,
         elevation: 0,
-        foregroundColor: Colors.black,
+        foregroundColor: AppColorStyle.textPrimary,
       ),
       body: SingleChildScrollView(
         physics: const ClampingScrollPhysics(),
@@ -126,7 +156,10 @@ class MovieDetails extends StatelessWidget {
           children: [
             Container(
               decoration: BoxDecoration(
-                border: Border.all(width: 2, color: Colors.black),
+                border: Border.all(
+                  width: 2,
+                  color: AppColorStyle.primaryAccent,
+                ),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: _buildMoviePoster(movie.poster),
@@ -137,6 +170,7 @@ class MovieDetails extends StatelessWidget {
                 movie.title,
                 style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: AppColorStyle.textPrimary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -145,15 +179,17 @@ class MovieDetails extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.grey.shade200,
+                color: AppColorStyle.appBarColor,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 movie.plot,
-                style: Theme.of(context).textTheme.bodyMedium,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColorStyle.textSecondary,
+                ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Row(
               children: [
                 const Icon(
@@ -164,39 +200,108 @@ class MovieDetails extends StatelessWidget {
                 const SizedBox(width: 10),
                 const Text(
                   "IMDb Rating:",
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: AppColorStyle.textPrimary,
+                  ),
                 ),
                 const SizedBox(width: 5),
-                _buildStarRating(starRating),
+                _buildStarRating(starRating, size: 20),
                 const SizedBox(width: 8),
-                Text(imdbScore.toStringAsFixed(1)),
+                Text(
+                  imdbScore.toStringAsFixed(1),
+                  style: const TextStyle(color: AppColorStyle.textPrimary),
+                ),
               ],
             ),
             const SizedBox(height: 12),
             Row(
               children: [
-                const Icon(FontAwesomeIcons.calendarDay, size: 20),
+                const Icon(
+                  FontAwesomeIcons.calendarDay,
+                  size: 18,
+                  color: AppColorStyle.secondaryAccent,
+                ),
                 const SizedBox(width: 10),
-                Text("Release Date: ${movie.releaseDate}"),
+                Text(
+                  "Release Date: ${movie.releaseDate}",
+                  style: const TextStyle(color: AppColorStyle.textPrimary),
+                ),
               ],
             ),
             const SizedBox(height: 10),
             Row(
               children: [
-                const Icon(FontAwesomeIcons.clapperboard, size: 20),
+                const Icon(
+                  FontAwesomeIcons.clapperboard,
+                  size: 18,
+                  color: AppColorStyle.secondaryAccent,
+                ),
                 const SizedBox(width: 10),
-                Text("Genre: ${movie.genre}"),
+                Expanded(
+                  child: Text(
+                    "Genre: ${movie.genre}",
+                    style: const TextStyle(color: AppColorStyle.textPrimary),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 10),
             Row(
               children: [
-                const Icon(FontAwesomeIcons.clock, size: 20),
+                const Icon(
+                  FontAwesomeIcons.clock,
+                  size: 18,
+                  color: AppColorStyle.secondaryAccent,
+                ),
                 const SizedBox(width: 10),
-                Text("Runtime: ${movie.runtime}"),
+                Text(
+                  "Run Time: ${movie.runtime}",
+                  style: const TextStyle(color: AppColorStyle.textPrimary),
+                ),
               ],
             ),
             const SizedBox(height: 20),
+
+            if (selectedCinema != null || selectedShowtime != null) ...[
+              Container(
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: AppColorStyle.primaryAccent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Seçilen Rezervasyon',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColorStyle.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (selectedCinema != null)
+                      Text(
+                        'Sinema: ${selectedCinema!.cinemaName}',
+                        style: const TextStyle(
+                          color: AppColorStyle.textSecondary,
+                        ),
+                      ),
+                    if (selectedShowtime != null)
+                      Text(
+                        'Seans: ${selectedShowtime!.hallname} - ${selectedShowtime!.startTime}',
+                        style: const TextStyle(
+                          color: AppColorStyle.textSecondary,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+
             ElevatedButton(
               onPressed: buttonOnPressed,
               style: ElevatedButton.styleFrom(

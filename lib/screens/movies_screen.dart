@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sinema_uygulamasi/api_connection/api_connection.dart';
 import 'package:sinema_uygulamasi/components/movies.dart';
+import 'package:sinema_uygulamasi/constant/app_color_style.dart';
 import 'package:sinema_uygulamasi/constant/app_text_style.dart';
 import 'package:sinema_uygulamasi/screens/movie_details.dart';
 
@@ -23,6 +24,7 @@ Widget buildMoviePoster(String posterUrl) {
         if (loadingProgress == null) return child;
         return Center(
           child: CircularProgressIndicator(
+            color: AppColorStyle.secondaryAccent,
             value: loadingProgress.expectedTotalBytes != null
                 ? loadingProgress.cumulativeBytesLoaded /
                       loadingProgress.expectedTotalBytes!
@@ -43,22 +45,35 @@ Widget _buildMovieGridSliver(
     future: fetchMovies(apiurl),
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
-        return SliverFillRemaining(
-          child: Center(child: CircularProgressIndicator()),
+        return const SliverFillRemaining(
+          child: Center(
+            child: CircularProgressIndicator(
+              color: AppColorStyle.secondaryAccent,
+            ),
+          ),
         );
       } else if (snapshot.hasError) {
         return SliverFillRemaining(
-          child: Center(child: Text("Hata: ${snapshot.error}")),
+          child: Center(
+            child: Text(
+              "Hata: ${snapshot.error}",
+              style: TextStyle(color: AppColorStyle.textPrimary),
+            ),
+          ),
         );
       } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-        return SliverFillRemaining(
-          child: Center(child: Text("Film bulunamadı.")),
+        return const SliverFillRemaining(
+          child: Center(
+            child: Text(
+              "Film bulunamadı.",
+              style: TextStyle(color: AppColorStyle.textPrimary),
+            ),
+          ),
         );
       } else {
         final movies = snapshot.data!;
-
         return SliverGrid(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
@@ -100,6 +115,7 @@ Widget _buildMovieGridSliver(
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
+                          color: AppColorStyle.textPrimary,
                         ),
                         textAlign: TextAlign.center,
                         maxLines: 2,
@@ -111,6 +127,7 @@ Widget _buildMovieGridSliver(
                       style: TextStyle(
                         fontWeight: FontWeight.w300,
                         fontSize: 14,
+                        color: AppColorStyle.textSecondary,
                       ),
                       textAlign: TextAlign.center,
                       maxLines: 2,
@@ -121,6 +138,7 @@ Widget _buildMovieGridSliver(
                       style: TextStyle(
                         fontWeight: FontWeight.w300,
                         fontSize: 14,
+                        color: AppColorStyle.textSecondary,
                       ),
                       textAlign: TextAlign.center,
                       maxLines: 2,
@@ -153,8 +171,8 @@ class _CategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
     bool overlapsContent,
   ) {
     return Container(
-      color: Colors.white,
-      padding: EdgeInsets.symmetric(vertical: 8),
+      color: AppColorStyle.appBarColor,
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
@@ -167,8 +185,8 @@ class _CategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
                     ? FontWeight.bold
                     : FontWeight.normal,
                 color: selectedCategory == 'Now Showing'
-                    ? Colors.blue
-                    : Colors.black,
+                    ? AppColorStyle.secondaryAccent
+                    : AppColorStyle.textPrimary,
               ),
             ),
           ),
@@ -181,8 +199,8 @@ class _CategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
                     ? FontWeight.bold
                     : FontWeight.normal,
                 color: selectedCategory == 'Coming Soon'
-                    ? Colors.blue
-                    : Colors.black,
+                    ? AppColorStyle.secondaryAccent
+                    : AppColorStyle.textPrimary,
               ),
             ),
           ),
@@ -195,8 +213,8 @@ class _CategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
                     ? FontWeight.bold
                     : FontWeight.normal,
                 color: selectedCategory == 'Pre Order'
-                    ? Colors.blue
-                    : Colors.black,
+                    ? AppColorStyle.secondaryAccent
+                    : AppColorStyle.textPrimary,
               ),
             ),
           ),
@@ -235,6 +253,7 @@ class _moviesScreenState extends State<moviesScreen> {
   }
 
   bool isNowPlaying = true;
+
   @override
   void initState() {
     super.initState();
@@ -244,10 +263,13 @@ class _moviesScreenState extends State<moviesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColorStyle.scaffoldBackground,
       appBar: AppBar(
-        title: const Text('All Movies'),
-        backgroundColor: Colors.white,
+        title: const Text(
+          'All Movies',
+          style: TextStyle(color: AppColorStyle.textPrimary),
+        ),
+        backgroundColor: AppColorStyle.appBarColor,
       ),
       body: CustomScrollView(
         slivers: [
@@ -278,14 +300,22 @@ class _moviesScreenState extends State<moviesScreen> {
                     isNowPlaying,
                   );
                 } else if (selectedCategory == 'Pre Order') {
-                  return SliverFillRemaining(
+                  return const SliverFillRemaining(
                     child: Center(
-                      child: Text('No Pre Order movies available.'),
+                      child: Text(
+                        'No Pre Order movies available.',
+                        style: TextStyle(color: AppColorStyle.textPrimary),
+                      ),
                     ),
                   );
                 } else {
-                  return SliverFillRemaining(
-                    child: Center(child: Text('Seçim bulunamadı.')),
+                  return const SliverFillRemaining(
+                    child: Center(
+                      child: Text(
+                        'Seçim bulunamadı.',
+                        style: TextStyle(color: AppColorStyle.textPrimary),
+                      ),
+                    ),
                   );
                 }
               },

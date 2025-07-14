@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sinema_uygulamasi/components/user.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:sinema_uygulamasi/constant/app_color_style.dart';
 import 'package:sinema_uygulamasi/screens/cinema_screen.dart';
 import 'package:sinema_uygulamasi/screens/movies_screen.dart';
 import 'package:sinema_uygulamasi/screens/profile_screen.dart';
@@ -40,9 +41,9 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: aktifOge,
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.blueAccent,
-        unselectedItemColor: Colors.grey,
-        backgroundColor: Colors.white,
+        selectedItemColor: AppColorStyle.primaryAccent,
+        unselectedItemColor: AppColorStyle.textPrimary,
+        backgroundColor: AppColorStyle.appBarColor,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.movie), label: 'Movies'),
