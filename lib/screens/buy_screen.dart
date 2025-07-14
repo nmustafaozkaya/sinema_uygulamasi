@@ -99,25 +99,50 @@ class _BuyScreenState extends State<BuyScreen> {
         ),
       ),
     );
+
     if (selectedShowtimeResult != null) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => BuyScreen(
-            currentMovie: widget.currentMovie,
-            currentCinema: currentCinema,
-            selectedShowtime: selectedShowtimeResult,
-            fromMovieDetails: widget.fromMovieDetails,
-          ),
-        ),
-      );
+      if (widget.fromMovieDetails) {
+        // MovieDetails'dan geldiyse, direkt MovieDetails'a dön ve result'ı gönder
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        Navigator.pop(context, {
+          'cinema': currentCinema,
+          'showtime': selectedShowtimeResult,
+        });
+      } else {
+        setState(() {
+          selectedShowtime = selectedShowtimeResult;
+        });
+      }
     }
   }
 
-  void _navigateBack() {
+  void _selectCinema() async {
+    final selectedCinemaResult = await Navigator.push<Cinema>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CinemaSelect(currentMovie2: widget.currentMovie),
+      ),
+    );
+
+    if (selectedCinemaResult != null) {
+      if (widget.fromMovieDetails) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        Navigator.pop(context, {
+          'cinema': selectedCinemaResult,
+          'showtime': null,
+        });
+      } else {
+        setState(() {
+          currentCinema = selectedCinemaResult;
+          selectedShowtime = null;
+        });
+      }
+    }
+  }
+
+  void _handleBackPress() {
     if (widget.fromMovieDetails) {
       Navigator.pop(context, {
-        'movie': widget.currentMovie,
         'cinema': currentCinema,
         'showtime': selectedShowtime,
       });
@@ -132,6 +157,11 @@ class _BuyScreenState extends State<BuyScreen> {
 
     return PopScope(
       canPop: false,
+      onPopInvoked: (didPop) {
+        if (!didPop) {
+          _handleBackPress();
+        }
+      },
       child: Scaffold(
         backgroundColor: AppColorStyle.scaffoldBackground,
         appBar: AppBar(
@@ -144,7 +174,7 @@ class _BuyScreenState extends State<BuyScreen> {
           iconTheme: const IconThemeData(color: AppColorStyle.textPrimary),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: _navigateBack,
+            onPressed: _handleBackPress,
           ),
         ),
         body: Padding(
@@ -212,28 +242,7 @@ class _BuyScreenState extends State<BuyScreen> {
                 _buildSelectionContainer(
                   title: 'Cinema Selection',
                   icon: FontAwesomeIcons.repeat,
-                  onPressed: () async {
-                    final selectedCinemaResult = await Navigator.push<Cinema>(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            CinemaSelect(currentMovie2: movie),
-                      ),
-                    );
-                    if (selectedCinemaResult != null) {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => BuyScreen(
-                            currentMovie: widget.currentMovie,
-                            currentCinema: selectedCinemaResult,
-                            selectedShowtime: selectedShowtime,
-                            fromMovieDetails: widget.fromMovieDetails,
-                          ),
-                        ),
-                      );
-                    }
-                  },
+                  onPressed: _selectCinema,
                   child: currentCinema != null
                       ? _buildInfoRow(
                           icon: Icons.location_on_outlined,

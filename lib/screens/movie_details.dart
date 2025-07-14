@@ -84,6 +84,28 @@ class _MovieDetailsState extends State<MovieDetails> {
     }
   }
 
+  void _navigateToBuyScreen() async {
+    final result = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(
+        settings: const RouteSettings(name: '/buy-screen'),
+        builder: (context) => BuyScreen(
+          currentMovie: widget.currentMovie,
+          currentCinema: selectedCinema,
+          selectedShowtime: selectedShowtime,
+          fromMovieDetails: true,
+        ),
+      ),
+    );
+
+    if (result != null && mounted) {
+      setState(() {
+        selectedCinema = result['cinema'];
+        selectedShowtime = result['showtime'];
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final movie = widget.currentMovie;
@@ -112,25 +134,7 @@ class _MovieDetailsState extends State<MovieDetails> {
     if (widget.isNowShowing) {
       buttonText = "Buy Ticket";
       buttonColor = Colors.amber;
-      buttonOnPressed = () async {
-        final result = await Navigator.push<Map<String, dynamic>>(
-          context,
-          MaterialPageRoute(
-            builder: (context) => BuyScreen(
-              currentMovie: movie,
-              currentCinema: null,
-              selectedShowtime: null,
-            ),
-          ),
-        );
-
-        if (result != null && mounted) {
-          setState(() {
-            selectedCinema = result['cinema'];
-            selectedShowtime = result['showtime'];
-          });
-        }
-      };
+      buttonOnPressed = _navigateToBuyScreen;
     } else {
       buttonText = "Buy Ticket (Coming Soon)";
       buttonColor = AppColorStyle.primaryAccent;
@@ -141,9 +145,9 @@ class _MovieDetailsState extends State<MovieDetails> {
     return Scaffold(
       backgroundColor: AppColorStyle.scaffoldBackground,
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           "Movie Details",
-          style: const TextStyle(color: AppColorStyle.textPrimary),
+          style: TextStyle(color: AppColorStyle.textPrimary),
         ),
         backgroundColor: AppColorStyle.appBarColor,
         elevation: 0,
@@ -264,6 +268,7 @@ class _MovieDetailsState extends State<MovieDetails> {
             ),
             const SizedBox(height: 20),
 
+            // Seçilen rezervasyon bilgilerini göster
             if (selectedCinema != null || selectedShowtime != null) ...[
               Container(
                 padding: const EdgeInsets.all(12),
@@ -276,7 +281,7 @@ class _MovieDetailsState extends State<MovieDetails> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Seçilen Rezervasyon',
+                      'Selected Reservation',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -286,14 +291,14 @@ class _MovieDetailsState extends State<MovieDetails> {
                     const SizedBox(height: 8),
                     if (selectedCinema != null)
                       Text(
-                        'Sinema: ${selectedCinema!.cinemaName}',
+                        'Cinema: ${selectedCinema!.cinemaName}',
                         style: const TextStyle(
                           color: AppColorStyle.textSecondary,
                         ),
                       ),
                     if (selectedShowtime != null)
                       Text(
-                        'Seans: ${selectedShowtime!.hallname} - ${selectedShowtime!.startTime}',
+                        'Showtime: ${selectedShowtime!.hallname} - ${DateFormat('dd MMM yyyy - HH:mm').format(selectedShowtime!.startTime)}',
                         style: const TextStyle(
                           color: AppColorStyle.textSecondary,
                         ),

@@ -7,6 +7,7 @@ import 'package:sinema_uygulamasi/components/movies.dart';
 import 'package:sinema_uygulamasi/components/showtimes.dart';
 import 'package:sinema_uygulamasi/components/ticket_price.dart';
 import 'package:sinema_uygulamasi/constant/app_color_style.dart';
+import 'package:sinema_uygulamasi/screens/seat_selection_screen.dart';
 
 class TicketSelectionScreen extends StatefulWidget {
   final Cinema currentCinema;
@@ -38,7 +39,7 @@ class _TicketSelectionScreenState extends State<TicketSelectionScreen> {
 
   Future<void> _fetchTicketTypes() async {
     try {
-      final url = ApiConnection.ticketPrice(widget.selectedShowtime.id);
+      final url = ApiConnection.getTicketPricesUrl(widget.selectedShowtime.id);
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
@@ -81,7 +82,6 @@ class _TicketSelectionScreenState extends State<TicketSelectionScreen> {
 
   bool get anySelected => selectedCounts.values.any((count) => count > 0);
 
-  // Seçilen biletlerin detaylarını döndürür
   List<Map<String, dynamic>> get selectedTicketDetails {
     List<Map<String, dynamic>> details = [];
     for (var ticket in ticketTypes) {
@@ -102,12 +102,17 @@ class _TicketSelectionScreenState extends State<TicketSelectionScreen> {
     return details;
   }
 
+  int get totalSelectedTickets {
+    return selectedCounts.values.fold(0, (sum, count) => sum + count);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColorStyle.scaffoldBackground,
       appBar: AppBar(
         backgroundColor: AppColorStyle.appBarColor,
+        iconTheme: IconThemeData(color: AppColorStyle.textPrimary),
         title: Text(
           'Select Ticket',
           style: TextStyle(color: AppColorStyle.textPrimary),
@@ -234,7 +239,6 @@ class _TicketSelectionScreenState extends State<TicketSelectionScreen> {
                   ),
                   Divider(color: AppColorStyle.textSecondary),
 
-                  // Details bölümü
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     child: Column(
@@ -249,8 +253,6 @@ class _TicketSelectionScreenState extends State<TicketSelectionScreen> {
                           ),
                         ),
                         const SizedBox(height: 8),
-
-                        // Seçilen biletlerin detayları
                         if (selectedTicketDetails.isNotEmpty) ...[
                           ...selectedTicketDetails.map((detail) {
                             final ticketType = detail['ticketType'];
@@ -298,7 +300,6 @@ class _TicketSelectionScreenState extends State<TicketSelectionScreen> {
                           const SizedBox(height: 8),
                         ],
 
-                        // Toplam fiyat
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -338,11 +339,19 @@ class _TicketSelectionScreenState extends State<TicketSelectionScreen> {
                       ),
                       onPressed: anySelected
                           ? () {
-                              print('Seçilen biletler: $selectedCounts');
-                              print(
-                                'Toplam fiyat: ${totalPrice.toStringAsFixed(2)}',
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => SeatSelectionScreen(
+                                    currentCinema: widget.currentCinema,
+                                    selectedShowtime: widget.selectedShowtime,
+                                    currentMovie: widget.currentMovie,
+                                    totalTicketsToSelect: totalSelectedTickets,
+                                    selectedTicketDetails:
+                                        selectedTicketDetails,
+                                  ),
+                                ),
                               );
-                              print('Bilet detayları: $selectedTicketDetails');
                             }
                           : null,
                       child: Text(

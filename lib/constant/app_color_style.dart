@@ -18,4 +18,8 @@ class AppColorStyle {
 
   // İkincil yazılar (yardımcı metinler, açıklamalar)
   static const Color textSecondary = Color(0xFFA8B5C3);
+
+  // Yeni eklendi: Hata veya uyarı rengi (kırmızı)
+  static const Color errorColor =
+      Colors.red; // Veya daha koyu bir kırmızı seçebilirsiniz
 }

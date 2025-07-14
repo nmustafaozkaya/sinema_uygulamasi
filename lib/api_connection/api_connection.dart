@@ -1,5 +1,5 @@
 class ApiConnection {
-  static const hostConnection = 'http://127.0.0.1:8000/api';
+  static const hostConnection = 'http://192.168.81.1:8000/api';
 
   static const signUp = '$hostConnection/register';
   static const login = '$hostConnection/login';
@@ -11,8 +11,16 @@ class ApiConnection {
 
   static const showtimes = "$hostConnection/showtimes";
   static const halls = "$hostConnection/halls";
-  static String apiResponseString(int i) =>
-      "$hostConnection/showtimes/$i/available-seats";
-  static String ticketPrice(int ticket) =>
-      "$hostConnection/tickets/prices/$ticket";
+
+  static String getAvailableSeatsUrl(int showtimeId) =>
+      "$hostConnection/showtimes/$showtimeId/available-seats";
+
+  static String getTicketPricesUrl(int showtimeId) =>
+      "$hostConnection/tickets/prices/$showtimeId";
+
+  static String reserveSeatUrl(int showtimeId) =>
+      "$hostConnection/showtimes/$showtimeId/reserve";
+
+  static String releaseSeatUrl(int seatId) =>
+      "$hostConnection/seats/$seatId/release";
 }
