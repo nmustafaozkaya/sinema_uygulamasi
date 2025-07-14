@@ -55,7 +55,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
           var user = User.fromJson(resBody['data']['user']);
 
-          // rememberMe'ye göre kayıt
           if (rememberMe) {
             await UserPreferences.saveData(user);
             await UserPreferences.saveToken(resBody['data']['token']);

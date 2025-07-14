@@ -1,6 +1,7 @@
 // lib/components/movie_list_section.dart
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sinema_uygulamasi/components/movies.dart';
 import 'package:sinema_uygulamasi/screens/movie_details.dart';
 
@@ -32,7 +33,7 @@ class MovieListSection extends StatelessWidget {
               ? Image.network(movie.poster, width: 50, fit: BoxFit.cover)
               : const Icon(Icons.movie),
           title: Text(movie.title),
-          subtitle: Text(movie.releaseDate),
+          subtitle: Text(DateFormat('dd.MM.yyyy').format(movie.releaseDate)),
           onTap: () {
             Navigator.push(
               context,

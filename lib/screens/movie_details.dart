@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:sinema_uygulamasi/constant/app_color_style.dart';
 import 'package:sinema_uygulamasi/screens/buy_screen.dart';
 import 'package:sinema_uygulamasi/components/movies.dart';
@@ -224,7 +225,7 @@ class _MovieDetailsState extends State<MovieDetails> {
                 ),
                 const SizedBox(width: 10),
                 Text(
-                  "Release Date: ${movie.releaseDate}",
+                  "Release Date: ${DateFormat('MMMM d, yyyy').format(movie.releaseDate)}",
                   style: const TextStyle(color: AppColorStyle.textPrimary),
                 ),
               ],

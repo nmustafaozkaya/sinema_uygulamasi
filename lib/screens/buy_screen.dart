@@ -6,7 +6,7 @@ import 'package:sinema_uygulamasi/components/movies.dart';
 import 'package:sinema_uygulamasi/constant/app_color_style.dart';
 import 'package:sinema_uygulamasi/screens/cinema_select.dart';
 import 'package:sinema_uygulamasi/components/showtimes.dart';
-import 'package:sinema_uygulamasi/screens/seat_screen.dart';
+import 'package:sinema_uygulamasi/screens/ticket_screen.dart';
 import 'package:sinema_uygulamasi/screens/showtimes_screen.dart';
 
 class BuyScreen extends StatefulWidget {
@@ -185,7 +185,7 @@ class _BuyScreenState extends State<BuyScreen> {
                             ),
                           ),
                           Text(
-                            'Release Date: ${movie?.releaseDate ?? '...'}',
+                            'Release Date: ${movie != null ? DateFormat.yMMMMd('en').format(movie.releaseDate) : '...'}',
                             style: const TextStyle(
                               color: AppColorStyle.textSecondary,
                             ),
@@ -243,7 +243,6 @@ class _BuyScreenState extends State<BuyScreen> {
                       : _buildPlaceholderText('Please select a cinema.'),
                 ),
 
-                /// Hall and Showtime
                 _buildSelectionContainer(
                   title: 'Hall and Showtime',
                   icon: FontAwesomeIcons.repeat,
@@ -269,7 +268,7 @@ class _BuyScreenState extends State<BuyScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => SeatScreen(
+                        builder: (context) => TicketSelectionScreen(
                           currentCinema: currentCinema!,
                           currentMovie: widget.currentMovie!,
                           selectedShowtime: selectedShowtime!,

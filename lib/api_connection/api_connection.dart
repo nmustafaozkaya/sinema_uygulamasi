@@ -13,4 +13,6 @@ class ApiConnection {
   static const halls = "$hostConnection/halls";
   static String apiResponseString(int i) =>
       "$hostConnection/showtimes/$i/available-seats";
+  static String ticketPrice(int ticket) =>
+      "$hostConnection/tickets/prices/$ticket";
 }

@@ -1,13 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-//
-// Make sure this is the Movie class you are importing and using.
-//
+import 'package:intl/intl.dart';
 
 class Movie {
   final int id;
   final String title;
-  final String releaseDate;
+  final DateTime releaseDate;
   final String runtime;
   final String genre;
   final String plot;
@@ -31,16 +29,39 @@ class Movie {
     return Movie(
       id: json['id'] ?? 0,
       title: json['title'] ?? '',
-      releaseDate: json['release_date'] ?? '',
+      releaseDate: parseDate(json['release_date']),
       runtime: (json['duration'] != null) ? '${json['duration']} dk' : '',
       genre: json['genre'] ?? '',
       plot: json['description'] ?? '',
       language: json['language'] ?? '',
       poster: json['poster_url'] ?? '',
-      imdbRating:
-          json['imdb_raiting'] ??
-          '', // Note: Typo in 'raiting' might need to match API
+      imdbRating: json['imdb_raiting'] ?? '',
     );
+  }
+}
+
+DateTime parseDate(String? dateStr) {
+  if (dateStr == null || dateStr.isEmpty) {
+    return DateTime(1900);
+  }
+
+  try {
+    // Önce dd-MM-yyyy formatını dene
+    return DateFormat('dd-MM-yyyy').parseStrict(dateStr);
+  } catch (_) {
+    try {
+      // Sonra yyyy-MM-dd formatını dene
+      return DateFormat('yyyy-MM-dd').parseStrict(dateStr);
+    } catch (_) {
+      try {
+        // DateTime.parse() ISO 8601 formatını otomatik handle eder
+        // (2026-11-06T00:00:00.000000Z gibi)
+        return DateTime.parse(dateStr);
+      } catch (e) {
+        print('Tarih parse hatası: $e - gelen değer: $dateStr');
+        return DateTime(1900);
+      }
+    }
   }
 }
 

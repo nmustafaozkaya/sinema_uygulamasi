@@ -7,6 +7,7 @@ import 'package:sinema_uygulamasi/components/cinemas.dart';
 import 'package:sinema_uygulamasi/components/movies.dart';
 import 'package:sinema_uygulamasi/components/showtimes.dart';
 import 'package:sinema_uygulamasi/constant/app_color_style.dart';
+import 'package:sinema_uygulamasi/screens/buy_screen.dart';
 
 class ShowtimesScreen extends StatefulWidget {
   final Cinema selectedCinema;
@@ -174,8 +175,16 @@ class _ShowtimesScreenState extends State<ShowtimesScreen> {
 
         return GestureDetector(
           onTap: () {
-            // Akışa göre: Seçilen seansı bir önceki sayfaya (CinemaSelect) geri gönderiyoruz.
-            Navigator.pop(context, showtime);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => BuyScreen(
+                  currentMovie: widget.currentMovie,
+                  selectedShowtime: showtime,
+                  currentCinema: widget.selectedCinema,
+                ),
+              ),
+            );
           },
           child: Container(
             decoration: BoxDecoration(
