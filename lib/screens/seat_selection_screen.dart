@@ -37,24 +37,35 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   List<Seat> selectedSeats = [];
   bool isLoading = true;
   String? errorMessage;
+  Timer? _refreshTimer; // Add a timer for periodic refresh
 
   @override
   void initState() {
     super.initState();
     loadSeats();
+    // Start a timer to periodically refresh seat availability
+    _refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      if (mounted) {
+        // Only refresh if the widget is still in the tree
+        loadSeats(
+          isManualRefresh: false,
+        ); // Auto-refresh, no loading indicator for this
+      }
+    });
   }
 
   @override
   void dispose() {
+    _refreshTimer?.cancel(); // Cancel the timer to prevent memory leaks
     super.dispose();
   }
 
-  Future<void> loadSeats() async {
+  Future<void> loadSeats({bool isManualRefresh = true}) async {
     try {
       if (!mounted) return;
 
-      // Sadece gerçekten yüklenmiyorsa veya hata varsa durumu güncelle
-      if (!isLoading || errorMessage != null) {
+      if (isManualRefresh) {
+        // Only show loading indicator for manual refresh
         setState(() {
           isLoading = true;
           errorMessage = null;
@@ -69,27 +80,67 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         seatResponse = response;
         isLoading = false;
 
-        List<Seat> newSelectedSeats = [];
-        for (var seat in selectedSeats) {
-          try {
-            final updatedSeat = response.data.seats.pending.firstWhere(
-              (s) => s.id == seat.id,
-            );
-            newSelectedSeats.add(updatedSeat);
-          } catch (_) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) {
+        // Filter selectedSeats based on the current API response
+        // This ensures that if a selected seat becomes occupied by someone else,
+        // it's removed from our local 'selectedSeats' list and a message is shown.
+        List<Seat> newlySelectedSeats = [];
+        List<Seat> removedSeats = [];
+
+        for (var selectedSeat in selectedSeats) {
+          // Check if the selected seat is still available or pending in the new response
+          bool stillAvailableOrPending =
+              response.data.seats.available.any(
+                (s) => s.id == selectedSeat.id,
+              ) ||
+              response.data.seats.pending.any((s) => s.id == selectedSeat.id);
+
+          if (stillAvailableOrPending) {
+            // Find the updated seat object from the response to keep its status fresh
+            Seat? updatedSeat;
+            try {
+              updatedSeat = response.data.seats.available.firstWhere(
+                (s) => s.id == selectedSeat.id,
+              );
+            } catch (_) {
+              try {
+                updatedSeat = response.data.seats.pending.firstWhere(
+                  (s) => s.id == selectedSeat.id,
+                );
+              } catch (_) {
+                // If it's not found in either, it must have been taken.
+              }
+            }
+            if (updatedSeat != null) {
+              newlySelectedSeats.add(updatedSeat);
+            } else {
+              // This case implies it was in selectedSeats but not found in available/pending,
+              // which means its status changed to occupied.
+              removedSeats.add(selectedSeat);
+            }
+          } else {
+            removedSeats.add(selectedSeat);
+          }
+        }
+
+        selectedSeats = newlySelectedSeats; // Update the list
+
+        // Show snackbars for seats that were removed because they were taken by someone else
+        if (removedSeats.isNotEmpty) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              for (var seat in removedSeats) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Koltuk ${seat.displayName} durumu değişti!'),
+                    content: Text(
+                      'Koltuk ${seat.displayName} başka kullanıcı tarafından rezerve edildi!',
+                    ),
                     backgroundColor: Colors.orange,
                   ),
                 );
               }
-            });
-          }
+            }
+          });
         }
-        selectedSeats = newSelectedSeats;
       });
     } catch (e) {
       if (!mounted) return;
@@ -197,9 +248,8 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   }
 
   Future<bool> unreserveSeat(Seat seat) async {
-    // URL'e seat.id'yi ekleyerek POST isteği gönder
     final url = Uri.parse(
-      'http://192.168.81.1:8000/api/seats/${seat.id}/release',
+      'http://192.168.81.1:8000/api/seats/${seat.id}/release', // Ensure this URL is correct for your backend
     );
     final headers = {'Content-Type': 'application/json'};
 
@@ -211,26 +261,13 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonResponse = json.decode(response.body);
 
-        // API yanıtını kontrol et
         if (jsonResponse['success'] == true) {
-          // Başarılı serbest bırakma
-          final releasedSeat = jsonResponse['seat'];
-
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Koltuk ${seat.displayName} serbest bırakıldı.'),
               backgroundColor: Colors.green,
             ),
           );
-
-          // Serbest bırakılan koltuğu yeşile boya ve kullanıcıya +1 hak ver
-          if (releasedSeat != null && releasedSeat['status'] == 'available') {
-            // loadSeats() fonksiyonu çağrılacak ve koltuk yeşil olacak
-            print(
-              'Koltuk ID ${releasedSeat['id']} serbest bırakıldı ve available durumunda',
-            );
-          }
-
           return true;
         } else {
           String message = jsonResponse['message'] ?? 'Bilinmeyen hata';
@@ -284,27 +321,26 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   }
 
   void toggleSeatSelection(Seat seat) async {
-    if (!seat.isSelectable) return;
-
     final isAlreadySelected = selectedSeats.any((s) => s.id == seat.id);
 
     if (isAlreadySelected) {
-      // Koltuk zaten seçili, serbest bırak
       final success = await unreserveSeat(seat);
       if (success) {
-        // Önce selectedSeats listesinden çıkar
         setState(() {
           selectedSeats.removeWhere((s) => s.id == seat.id);
         });
-        // Sonra koltukları güncelle
+
         await loadSeats();
       }
     } else {
-      // Yeni koltuk seçimi - sadece available koltuklar seçilebilir
+      if (!seat.isSelectable) return;
+
       if (seat.status != SeatStatus.available) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${seat.displayName} koltuğu seçilemez durumda.'),
+            content: Text(
+              '${seat.displayName} koltuğu seçilemez durumda veya zaten rezerve edilmiş.',
+            ),
             backgroundColor: Colors.orange,
           ),
         );
@@ -334,14 +370,12 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   }
 
   Color getSeatColor(Seat seat) {
-    // Önce seçili koltuk kontrolü yap
     final isSelected = selectedSeats.any((s) => s.id == seat.id);
-
     if (isSelected) {
-      return AppColorStyle.primaryAccent; // Seçili koltuk rengi
+      return AppColorStyle.primaryAccent; // Color for locally selected seats
     }
 
-    // Seçili değilse, durumuna göre renk belirle
+    // Colors based on the actual backend status
     switch (seat.status) {
       case SeatStatus.available:
         return Colors.green;
@@ -365,7 +399,8 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
           border: Border.all(
             color: seat.isSelectable
                 ? AppColorStyle.textSecondary
-                : AppColorStyle.appBarColor,
+                : AppColorStyle
+                      .appBarColor, // Less prominent for non-selectable
             width: 1,
           ),
         ),
@@ -431,6 +466,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                       children: [
                         Container(
                           width: 30,
+                          alignment: Alignment.center,
                           child: Text(
                             row,
                             style: TextStyle(
@@ -441,6 +477,9 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                             textAlign: TextAlign.center,
                           ),
                         ),
+                        const SizedBox(
+                          width: 8,
+                        ), // Spacing between row label and seats
                         ...seats.map((seat) => buildSeatButton(seat)).toList(),
                       ],
                     ),
@@ -458,6 +497,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
     return Card(
       margin: const EdgeInsets.all(16),
       color: AppColorStyle.appBarColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -475,6 +515,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
 
   Widget _buildLegendItem(Color color, String label) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           width: 20,
@@ -484,7 +525,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
             borderRadius: BorderRadius.circular(4),
           ),
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: 8),
         Text(
           label,
           style: TextStyle(fontSize: 12, color: AppColorStyle.textSecondary),
@@ -499,6 +540,9 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
       totalPrice += detail['totalPrice'] as double;
     }
 
+    final isSelectionComplete =
+        selectedSeats.length == widget.totalTicketsToSelect;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -512,85 +556,100 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Seçili Koltuklar: ${selectedSeats.map((s) => s.displayName).join(', ')}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: AppColorStyle.textPrimary,
-                      ),
-                    ),
-                    if (selectedSeats.isNotEmpty)
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        'Toplam Seçili: ${selectedSeats.length} koltuk',
-                        style: TextStyle(color: AppColorStyle.textSecondary),
+                        'Seçili Koltuklar: ${selectedSeats.map((s) => s.displayName).join(', ')}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppColorStyle.textPrimary,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    Text(
-                      'Seçilmesi Gereken: ${widget.totalTicketsToSelect - selectedSeats.length} koltuk kaldı',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color:
-                            selectedSeats.length == widget.totalTicketsToSelect
-                            ? Colors.green
-                            : Colors.orange,
-                      ),
-                    ),
-                    Text(
-                      'Ödenecek Tutar: ${totalPrice.toStringAsFixed(2)} ₺',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: AppColorStyle.primaryAccent,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              ElevatedButton(
-                onPressed: selectedSeats.length == widget.totalTicketsToSelect
-                    ? () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ReservationScreen(
-                              cinema: widget.currentCinema,
-                              movie: widget.currentMovie,
-                              showtime: widget.selectedShowtime,
-                              selectedSeats: selectedSeats,
-                              selectedTicketDetails:
-                                  widget.selectedTicketDetails,
-                              totalPrice: totalPrice,
+                      if (selectedSeats.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4.0),
+                          child: Text(
+                            'Toplam Seçili: ${selectedSeats.length} koltuk',
+                            style: TextStyle(
+                              color: AppColorStyle.textSecondary,
                             ),
                           ),
-                        );
-                      }
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      selectedSeats.length == widget.totalTicketsToSelect
-                      ? AppColorStyle.primaryAccent
-                      : Colors.grey.shade700,
-                  foregroundColor: AppColorStyle.textPrimary,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
+                        ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: Text(
+                          'Seçilmesi Gereken: ${widget.totalTicketsToSelect - selectedSeats.length} koltuk kaldı',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: isSelectionComplete
+                                ? Colors.green
+                                : Colors.orange,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        'Ödenecek Tutar: ${totalPrice.toStringAsFixed(2)} ₺',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: AppColorStyle.primaryAccent,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                child: const Text('Devam Et'),
-              ),
-            ],
-          ),
-        ],
+                const SizedBox(width: 16),
+                ElevatedButton(
+                  onPressed: isSelectionComplete
+                      ? () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ReservationScreen(
+                                cinema: widget.currentCinema,
+                                movie: widget.currentMovie,
+                                showtime: widget.selectedShowtime,
+                                selectedSeats: selectedSeats,
+                                selectedTicketDetails:
+                                    widget.selectedTicketDetails,
+                                totalPrice: totalPrice,
+                              ),
+                            ),
+                          );
+                        }
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isSelectionComplete
+                        ? AppColorStyle.primaryAccent
+                        : Colors.grey.shade700,
+                    foregroundColor: AppColorStyle.textPrimary,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text('Devam Et', style: TextStyle(fontSize: 16)),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -604,12 +663,26 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
           'Koltuk Seçimi',
           style: TextStyle(color: AppColorStyle.textPrimary),
         ),
+
         backgroundColor: AppColorStyle.appBarColor,
         foregroundColor: AppColorStyle.textPrimary,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: AppColorStyle.textPrimary),
-            onPressed: loadSeats,
+            onPressed: () async {
+              // Tüm seçili koltukları serbest bırak
+              for (var seat in List<Seat>.from(selectedSeats)) {
+                final success = await unreserveSeat(seat);
+                if (success) {
+                  setState(() {
+                    selectedSeats.removeWhere((s) => s.id == seat.id);
+                  });
+                }
+              }
+
+              // Sonra koltukları yeniden yükle
+              await loadSeats(isManualRefresh: true);
+            },
           ),
         ],
       ),
@@ -618,6 +691,9 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
           Card(
             margin: const EdgeInsets.all(16),
             color: AppColorStyle.appBarColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -626,7 +702,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                   Text(
                     widget.currentMovie.title,
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: AppColorStyle.textPrimary,
                     ),
@@ -668,10 +744,13 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                         ),
                         const SizedBox(height: 16),
                         ElevatedButton(
-                          onPressed: loadSeats,
+                          onPressed: () => loadSeats(isManualRefresh: true),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColorStyle.primaryAccent,
                             foregroundColor: AppColorStyle.textPrimary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
                           child: const Text('Tekrar Dene'),
                         ),
