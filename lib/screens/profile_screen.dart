@@ -4,6 +4,7 @@ import 'package:sinema_uygulamasi/components/user_preferences.dart';
 import 'package:sinema_uygulamasi/screens/login_screen.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:sinema_uygulamasi/constant/app_color_style.dart';
+import 'package:sinema_uygulamasi/screens/my_ticket_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final User currentUser;
@@ -43,7 +44,8 @@ class ProfileScreen extends StatelessWidget {
                     CircleAvatar(
                       radius: 50,
                       backgroundColor: AppColorStyle.primaryAccent,
-                      child: Icon(
+                      child: const Icon(
+                        // const ekledik
                         FontAwesomeIcons.user,
                         size: 50,
                         color: AppColorStyle.textPrimary,
@@ -94,7 +96,15 @@ class ProfileScreen extends StatelessWidget {
                 Icons.arrow_forward_ios,
                 color: AppColorStyle.textSecondary,
               ),
-              onTap: () {},
+              onTap: () {
+                // SnackBar'ı düzeltildi
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Bilgilerimi Düzenle yakında gelecek"),
+                    duration: Duration(seconds: 2), // Kısa gösterim süresi
+                  ),
+                );
+              },
             ),
             ListTile(
               leading: const Icon(
@@ -109,7 +119,14 @@ class ProfileScreen extends StatelessWidget {
                 Icons.arrow_forward_ios,
                 color: AppColorStyle.textSecondary,
               ),
-              onTap: () {},
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Şifre Değiştirme yakında gelecek"),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
             ),
             ListTile(
               leading: const Icon(
@@ -124,7 +141,14 @@ class ProfileScreen extends StatelessWidget {
                 Icons.arrow_forward_ios,
                 color: AppColorStyle.textSecondary,
               ),
-              onTap: () {},
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Ödeme Yöntemleri yakında gelecek"),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 24),
 
@@ -148,7 +172,14 @@ class ProfileScreen extends StatelessWidget {
                 Icons.arrow_forward_ios,
                 color: AppColorStyle.textSecondary,
               ),
-              onTap: () {},
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Favori Filmler yakında gelecek"),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 24),
 
@@ -174,7 +205,14 @@ class ProfileScreen extends StatelessWidget {
                 Icons.arrow_forward_ios,
                 color: AppColorStyle.textSecondary,
               ),
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MyTicketScreen(),
+                  ), // const ekledik
+                );
+              },
             ),
             ListTile(
               leading: const Icon(
@@ -189,7 +227,14 @@ class ProfileScreen extends StatelessWidget {
                 Icons.arrow_forward_ios,
                 color: AppColorStyle.textSecondary,
               ),
-              onTap: () {},
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Gelecek Biletler yakında gelecek"),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 24),
 

@@ -96,6 +96,7 @@ class _TicketSelectionScreenState extends State<TicketSelectionScreen> {
           'count': count,
           'unitPrice': discountedPrice,
           'totalPrice': discountedPrice * count,
+          'customer_type': ticket.code,
         });
       }
     }

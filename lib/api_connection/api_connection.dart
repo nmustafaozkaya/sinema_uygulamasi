@@ -1,5 +1,5 @@
 class ApiConnection {
-  static const hostConnection = 'http://127.0.0.1:8000/api';
+  static const hostConnection = 'http://192.168.8.106:8000/api';
 
   static const signUp = '$hostConnection/register';
   static const login = '$hostConnection/login';
@@ -23,4 +23,7 @@ class ApiConnection {
 
   static String releaseSeatUrl(int seatId) =>
       "$hostConnection/seats/$seatId/release";
+
+  static String taxes = "$hostConnection/taxes";
+  static String buyTicket = "$hostConnection/tickets";
 }

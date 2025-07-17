@@ -10,7 +10,7 @@ import 'package:sinema_uygulamasi/constant/app_color_style.dart';
 import 'package:intl/intl.dart';
 import 'package:sinema_uygulamasi/components/showtimes.dart';
 import 'package:sinema_uygulamasi/components/seat_reservation_response.dart';
-import 'package:sinema_uygulamasi/screens/Reservation_screen.dart';
+import 'package:sinema_uygulamasi/screens/reservation_screen.dart';
 
 class SeatSelectionScreen extends StatefulWidget {
   final Cinema currentCinema;
@@ -37,26 +37,22 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   List<Seat> selectedSeats = [];
   bool isLoading = true;
   String? errorMessage;
-  Timer? _refreshTimer; // Add a timer for periodic refresh
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
     loadSeats();
-    // Start a timer to periodically refresh seat availability
     _refreshTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
       if (mounted) {
-        // Only refresh if the widget is still in the tree
-        loadSeats(
-          isManualRefresh: false,
-        ); // Auto-refresh, no loading indicator for this
+        loadSeats(isManualRefresh: false);
       }
     });
   }
 
   @override
   void dispose() {
-    _refreshTimer?.cancel(); // Cancel the timer to prevent memory leaks
+    _refreshTimer?.cancel();
     super.dispose();
   }
 
@@ -65,7 +61,6 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
       if (!mounted) return;
 
       if (isManualRefresh) {
-        // Only show loading indicator for manual refresh
         setState(() {
           isLoading = true;
           errorMessage = null;
@@ -80,14 +75,10 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         seatResponse = response;
         isLoading = false;
 
-        // Filter selectedSeats based on the current API response
-        // This ensures that if a selected seat becomes occupied by someone else,
-        // it's removed from our local 'selectedSeats' list and a message is shown.
         List<Seat> newlySelectedSeats = [];
         List<Seat> removedSeats = [];
 
         for (var selectedSeat in selectedSeats) {
-          // Check if the selected seat is still available or pending in the new response
           bool stillAvailableOrPending =
               response.data.seats.available.any(
                 (s) => s.id == selectedSeat.id,
@@ -95,7 +86,6 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
               response.data.seats.pending.any((s) => s.id == selectedSeat.id);
 
           if (stillAvailableOrPending) {
-            // Find the updated seat object from the response to keep its status fresh
             Seat? updatedSeat;
             try {
               updatedSeat = response.data.seats.available.firstWhere(
@@ -106,15 +96,11 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                 updatedSeat = response.data.seats.pending.firstWhere(
                   (s) => s.id == selectedSeat.id,
                 );
-              } catch (_) {
-                // If it's not found in either, it must have been taken.
-              }
+              } catch (_) {}
             }
             if (updatedSeat != null) {
               newlySelectedSeats.add(updatedSeat);
             } else {
-              // This case implies it was in selectedSeats but not found in available/pending,
-              // which means its status changed to occupied.
               removedSeats.add(selectedSeat);
             }
           } else {
@@ -122,9 +108,8 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
           }
         }
 
-        selectedSeats = newlySelectedSeats; // Update the list
+        selectedSeats = newlySelectedSeats;
 
-        // Show snackbars for seats that were removed because they were taken by someone else
         if (removedSeats.isNotEmpty) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
@@ -132,7 +117,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      'Koltuk ${seat.displayName} başka kullanıcı tarafından rezerve edildi!',
+                      'Seat ${seat.displayName} was reserved by another user!',
                     ),
                     backgroundColor: Colors.orange,
                   ),
@@ -159,17 +144,17 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
 
       if (response.statusCode == 200) {
         if (response.body.isEmpty) {
-          throw Exception('Sunucudan boş yanıt alındı.');
+          throw Exception('Empty response received from server.');
         }
         final Map<String, dynamic> jsonResponse = json.decode(response.body);
         return CinemaSeatResponse.fromJson(jsonResponse);
       } else {
         throw Exception(
-          'Sunucu hatası: ${response.statusCode}. Yanıt: ${response.body}',
+          'Server error: ${response.statusCode}. response: ${response.body}',
         );
       }
     } catch (e) {
-      throw Exception('Koltuk bilgileri alınırken hata oluştu: $e');
+      throw Exception('Error while fetching seat data: $e');
     }
   }
 
@@ -193,9 +178,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         if (reservationResponse.success) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                'Koltuk ${seat.displayName} başarıyla rezerve edildi.',
-              ),
+              content: Text('Seat ${seat.displayName} successfully reserved.'),
               backgroundColor: Colors.green,
             ),
           );
@@ -204,77 +187,8 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
           String message = reservationResponse.message;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('${seat.displayName} rezerve edilemedi: $message'),
-              backgroundColor: Colors.red,
-            ),
-          );
-          return false;
-        }
-      } else {
-        String errorMsg = 'Koltuk rezervasyonunda sunucu hatası';
-        try {
-          final errorJson = json.decode(response.body);
-          if (errorJson['message'] != null) {
-            errorMsg = errorJson['message'];
-          } else if (errorJson['error'] != null) {
-            errorMsg = errorJson['error'];
-          } else {
-            errorMsg = 'HTTP ${response.statusCode}: ${response.body}';
-          }
-        } catch (_) {
-          errorMsg = 'HTTP ${response.statusCode}: ${response.body}';
-        }
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${seat.displayName} rezerve edilemedi: $errorMsg'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return false;
-      }
-    } catch (e) {
-      if (!mounted) return false;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '${seat.displayName} rezervasyon isteği başarısız oldu: $e',
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return false;
-    }
-  }
-
-  Future<bool> unreserveSeat(Seat seat) async {
-    final url = Uri.parse(
-      'http://192.168.81.1:8000/api/seats/${seat.id}/release', // Ensure this URL is correct for your backend
-    );
-    final headers = {'Content-Type': 'application/json'};
-
-    try {
-      final response = await http.post(url, headers: headers);
-
-      if (!mounted) return false;
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> jsonResponse = json.decode(response.body);
-
-        if (jsonResponse['success'] == true) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Koltuk ${seat.displayName} serbest bırakıldı.'),
-              backgroundColor: Colors.green,
-            ),
-          );
-          return true;
-        } else {
-          String message = jsonResponse['message'] ?? 'Bilinmeyen hata';
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
               content: Text(
-                '${seat.displayName} serbest bırakılamadı: $message',
+                '${seat.displayName} could not be reserved: $message',
               ),
               backgroundColor: Colors.red,
             ),
@@ -282,7 +196,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
           return false;
         }
       } else {
-        String errorMsg = 'Koltuk serbest bırakmada sunucu hatası';
+        String errorMsg = 'Seat reserve server error';
         try {
           final errorJson = json.decode(response.body);
           if (errorJson['message'] != null) {
@@ -299,7 +213,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${seat.displayName} serbest bırakılamadı: $errorMsg',
+              '${seat.displayName} could not be reserved: $errorMsg',
             ),
             backgroundColor: Colors.red,
           ),
@@ -310,9 +224,76 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
       if (!mounted) return false;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            '${seat.displayName} serbest bırakma isteği başarısız oldu: $e',
+          content: Text('${seat.displayName} reserve request failed: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return false;
+    }
+  }
+
+  Future<bool> unreserveSeat(Seat seat) async {
+    final url = Uri.parse(ApiConnection.releaseSeatUrl(seat.id));
+    final headers = {'Content-Type': 'application/json'};
+
+    try {
+      final response = await http.post(url, headers: headers);
+
+      if (!mounted) return false;
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(response.body);
+
+        if (jsonResponse['success'] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Seat ${seat.displayName} has been released.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          return true;
+        } else {
+          String message = jsonResponse['message'] ?? 'Unknown error!';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '${seat.displayName} could not be released: $message',
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return false;
+        }
+      } else {
+        String errorMsg = 'Server error! Could not be released';
+        try {
+          final errorJson = json.decode(response.body);
+          if (errorJson['message'] != null) {
+            errorMsg = errorJson['message'];
+          } else if (errorJson['error'] != null) {
+            errorMsg = errorJson['error'];
+          } else {
+            errorMsg = 'HTTP ${response.statusCode}: ${response.body}';
+          }
+        } catch (_) {
+          errorMsg = 'HTTP ${response.statusCode}: ${response.body}';
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${seat.displayName} could not be released: $errorMsg',
+            ),
+            backgroundColor: Colors.red,
           ),
+        );
+        return false;
+      }
+    } catch (e) {
+      if (!mounted) return false;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${seat.displayName} release request failed: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -339,7 +320,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${seat.displayName} koltuğu seçilemez durumda veya zaten rezerve edilmiş.',
+              '${seat.displayName} not selectable or already reserved.',
             ),
             backgroundColor: Colors.orange,
           ),
@@ -351,7 +332,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Sadece ${widget.totalTicketsToSelect} koltuk seçebilirsiniz.',
+              'You can only select ${widget.totalTicketsToSelect} seat(s).',
             ),
             backgroundColor: Colors.red,
           ),
@@ -372,10 +353,9 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   Color getSeatColor(Seat seat) {
     final isSelected = selectedSeats.any((s) => s.id == seat.id);
     if (isSelected) {
-      return AppColorStyle.primaryAccent; // Color for locally selected seats
+      return AppColorStyle.primaryAccent;
     }
 
-    // Colors based on the actual backend status
     switch (seat.status) {
       case SeatStatus.available:
         return Colors.green;
@@ -399,8 +379,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
           border: Border.all(
             color: seat.isSelectable
                 ? AppColorStyle.textSecondary
-                : AppColorStyle
-                      .appBarColor, // Less prominent for non-selectable
+                : AppColorStyle.appBarColor,
             width: 1,
           ),
         ),
@@ -424,7 +403,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         child: isLoading
             ? CircularProgressIndicator(color: AppColorStyle.primaryAccent)
             : Text(
-                errorMessage ?? 'Koltuk haritası yüklenemedi.',
+                errorMessage ?? 'Failed to load seat map.',
                 style: const TextStyle(color: Colors.red),
               ),
       );
@@ -445,7 +424,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
           ),
           child: Center(
             child: Text(
-              'EKRAN',
+              'Screen This Way ↑',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: AppColorStyle.textPrimary,
@@ -477,14 +456,12 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                             textAlign: TextAlign.center,
                           ),
                         ),
-                        const SizedBox(
-                          width: 8,
-                        ), // Spacing between row label and seats
+                        const SizedBox(width: 8),
                         ...seats.map((seat) => buildSeatButton(seat)).toList(),
                       ],
                     ),
                   );
-                }).toList(),
+                }),
               ],
             ),
           ),
@@ -503,10 +480,10 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _buildLegendItem(Colors.green, 'Müsait'),
-            _buildLegendItem(AppColorStyle.primaryAccent, 'Seçili'),
-            _buildLegendItem(Colors.orange, 'Bekleyen'),
-            _buildLegendItem(Colors.red, 'Dolu'),
+            _buildLegendItem(Colors.green, 'Available'),
+            _buildLegendItem(AppColorStyle.primaryAccent, 'Selected'),
+            _buildLegendItem(Colors.orange, 'Pending'),
+            _buildLegendItem(Colors.red, 'Occupied'),
           ],
         ),
       ),
@@ -549,7 +526,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         color: AppColorStyle.appBarColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black,
             spreadRadius: 1,
             blurRadius: 5,
             offset: const Offset(0, -2),
@@ -570,7 +547,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Seçili Koltuklar: ${selectedSeats.map((s) => s.displayName).join(', ')}',
+                        'Selected Seats: ${selectedSeats.map((s) => s.displayName).join(', ')}',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: AppColorStyle.textPrimary,
@@ -582,7 +559,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                         Padding(
                           padding: const EdgeInsets.only(top: 4.0),
                           child: Text(
-                            'Toplam Seçili: ${selectedSeats.length} koltuk',
+                            'Total Selected: ${selectedSeats.length}',
                             style: TextStyle(
                               color: AppColorStyle.textSecondary,
                             ),
@@ -591,7 +568,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4.0),
                         child: Text(
-                          'Seçilmesi Gereken: ${widget.totalTicketsToSelect - selectedSeats.length} koltuk kaldı',
+                          'Seats Remaining: ${widget.totalTicketsToSelect - selectedSeats.length} more to select',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: isSelectionComplete
@@ -601,7 +578,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                         ),
                       ),
                       Text(
-                        'Ödenecek Tutar: ${totalPrice.toStringAsFixed(2)} ₺',
+                        'Subtotal Amount: ${totalPrice.toStringAsFixed(2)} ₺',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
@@ -633,7 +610,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                       : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: isSelectionComplete
-                        ? AppColorStyle.primaryAccent
+                        ? Colors.amber.shade700
                         : Colors.grey.shade700,
                     foregroundColor: AppColorStyle.textPrimary,
                     padding: const EdgeInsets.symmetric(
@@ -644,7 +621,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text('Devam Et', style: TextStyle(fontSize: 16)),
+                  child: const Text('Proceed', style: TextStyle(fontSize: 16)),
                 ),
               ],
             ),
@@ -660,7 +637,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
       backgroundColor: AppColorStyle.scaffoldBackground,
       appBar: AppBar(
         title: const Text(
-          'Koltuk Seçimi',
+          'Select Seat',
           style: TextStyle(color: AppColorStyle.textPrimary),
         ),
 
@@ -670,7 +647,6 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
           IconButton(
             icon: const Icon(Icons.refresh, color: AppColorStyle.textPrimary),
             onPressed: () async {
-              // Tüm seçili koltukları serbest bırak
               for (var seat in List<Seat>.from(selectedSeats)) {
                 final success = await unreserveSeat(seat);
                 if (success) {
@@ -680,7 +656,6 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                 }
               }
 
-              // Sonra koltukları yeniden yükle
               await loadSeats(isManualRefresh: true);
             },
           ),
@@ -709,15 +684,15 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Sinema: ${widget.currentCinema.cinemaName}',
+                    'Cinema: ${widget.currentCinema.cinemaName}',
                     style: TextStyle(color: AppColorStyle.textSecondary),
                   ),
                   Text(
-                    'Salon: ${widget.selectedShowtime.hallname}',
+                    'Hall: ${widget.selectedShowtime.hallname}',
                     style: TextStyle(color: AppColorStyle.textSecondary),
                   ),
                   Text(
-                    'Seans: ${DateFormat('dd.MM.yyyy HH:mm').format(widget.selectedShowtime.startTime)}',
+                    'Showtime: ${DateFormat('dd.MM.yyyy HH:mm').format(widget.selectedShowtime.startTime)}',
                     style: TextStyle(color: AppColorStyle.textSecondary),
                   ),
                 ],
@@ -738,7 +713,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Hata: $errorMessage',
+                          'Error: $errorMessage',
                           style: const TextStyle(color: Colors.red),
                           textAlign: TextAlign.center,
                         ),
@@ -752,7 +727,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: const Text('Tekrar Dene'),
+                          child: const Text('Try again'),
                         ),
                       ],
                     ),

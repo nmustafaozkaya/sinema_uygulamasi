@@ -61,6 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
             await UserPreferences.setRememberMe(true);
           } else {
             await UserPreferences.setRememberMe(false);
+            await UserPreferences.saveToken(resBody['data']['token']);
           }
 
           Future.delayed(const Duration(seconds: 1), () {

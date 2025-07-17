@@ -102,7 +102,6 @@ class _BuyScreenState extends State<BuyScreen> {
 
     if (selectedShowtimeResult != null) {
       if (widget.fromMovieDetails) {
-        // MovieDetails'dan geldiyse, direkt MovieDetails'a dön ve result'ı gönder
         Navigator.of(context).popUntil((route) => route.isFirst);
         Navigator.pop(context, {
           'cinema': currentCinema,
@@ -157,11 +156,7 @@ class _BuyScreenState extends State<BuyScreen> {
 
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
-        if (!didPop) {
-          _handleBackPress();
-        }
-      },
+
       child: Scaffold(
         backgroundColor: AppColorStyle.scaffoldBackground,
         appBar: AppBar(
@@ -183,7 +178,6 @@ class _BuyScreenState extends State<BuyScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                /// Movie Information
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

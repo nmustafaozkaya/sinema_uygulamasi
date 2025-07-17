@@ -175,10 +175,10 @@ class _ShowtimesScreenState extends State<ShowtimesScreen> {
 
         return GestureDetector(
           onTap: () {
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => BuyScreen(
+                builder: (_) => BuyScreen(
                   currentMovie: widget.currentMovie,
                   selectedShowtime: showtime,
                   currentCinema: widget.selectedCinema,
