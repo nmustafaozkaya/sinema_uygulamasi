@@ -90,15 +90,16 @@ class _BuyScreenState extends State<BuyScreen> {
       return;
     }
 
-    final selectedShowtimeResult = await Navigator.push<Showtime>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ShowtimesScreen(
-          selectedCinema: currentCinema!,
-          currentMovie: widget.currentMovie!,
-        ),
-      ),
-    );
+    final selectedShowtimeResult =
+        await Navigator.pushReplacement<Showtime, Showtime>(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ShowtimesScreen(
+              selectedCinema: currentCinema!,
+              currentMovie: widget.currentMovie!,
+            ),
+          ),
+        );
 
     if (selectedShowtimeResult != null) {
       if (widget.fromMovieDetails) {
@@ -116,12 +117,14 @@ class _BuyScreenState extends State<BuyScreen> {
   }
 
   void _selectCinema() async {
-    final selectedCinemaResult = await Navigator.push<Cinema>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CinemaSelect(currentMovie2: widget.currentMovie),
-      ),
-    );
+    final selectedCinemaResult =
+        await Navigator.pushReplacement<Cinema, Cinema>(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                CinemaSelect(currentMovie2: widget.currentMovie),
+          ),
+        );
 
     if (selectedCinemaResult != null) {
       if (widget.fromMovieDetails) {
@@ -232,7 +235,6 @@ class _BuyScreenState extends State<BuyScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                /// Cinema Selection
                 _buildSelectionContainer(
                   title: 'Cinema Selection',
                   icon: FontAwesomeIcons.repeat,

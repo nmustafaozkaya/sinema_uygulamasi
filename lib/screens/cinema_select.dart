@@ -131,7 +131,6 @@ class _CinemaSelectState extends State<CinemaSelect> {
             return;
           }
 
-          // Cinema nesnelerini oluştur
           final List<Cinema> cinemas = [];
           for (final cinemaData in uniqueCinemas.values) {
             try {
@@ -143,10 +142,8 @@ class _CinemaSelectState extends State<CinemaSelect> {
             }
           }
 
-          // Şehir listesini hazırla
           final sortedCities = cityNames.toList()..sort();
 
-          // Sinemaları isme göre sırala
           cinemas.sort((a, b) => a.cinemaName.compareTo(b.cinemaName));
 
           setState(() {
@@ -275,7 +272,6 @@ class _CinemaSelectState extends State<CinemaSelect> {
 
     final sortedCities = cityNames.toList()..sort();
 
-    // Sinemaları isme göre sırala
     cinemas.sort((a, b) => a.cinemaName.compareTo(b.cinemaName));
 
     setState(() {
@@ -287,15 +283,12 @@ class _CinemaSelectState extends State<CinemaSelect> {
   }
 
   String _getCityNameById(int cityId) {
-    // City ID'ye göre şehir adını döndür
-    // Bu mapping'i kendi verilerinize göre güncelleyin
     final cityMap = {
       1: 'İstanbul',
       2: 'Ankara',
       3: 'Afyonkarahisar',
       4: 'İzmir',
       5: 'Bursa',
-      // Diğer şehirler...
     };
 
     return cityMap[cityId] ?? 'Bilinmeyen Şehir';
@@ -314,7 +307,6 @@ class _CinemaSelectState extends State<CinemaSelect> {
       return matchesSearch && matchesCity;
     }).toList();
 
-    // Filtrelenmiş sinemaları da isme göre sırala
     filtered.sort((a, b) => a.cinemaName.compareTo(b.cinemaName));
 
     setState(() {
@@ -386,7 +378,6 @@ class _CinemaSelectState extends State<CinemaSelect> {
             )
           : Column(
               children: [
-                // Şehir filtresi
                 Padding(
                   padding: const EdgeInsets.fromLTRB(12, 16, 12, 8),
                   child: DropdownButtonFormField<String>(
@@ -421,7 +412,6 @@ class _CinemaSelectState extends State<CinemaSelect> {
                     },
                   ),
                 ),
-                // Arama kutusu
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
@@ -451,7 +441,6 @@ class _CinemaSelectState extends State<CinemaSelect> {
                     onChanged: _filterCinemas,
                   ),
                 ),
-                // Sinema listesi
                 Expanded(
                   child: _filteredCinemas.isEmpty
                       ? const Center(
@@ -498,7 +487,6 @@ class _CinemaSelectState extends State<CinemaSelect> {
                                       ),
                                     );
                                   } else {
-                                    // Sadece sinema seçimi yapıldıysa
                                     Navigator.pop(context, cinema);
                                   }
                                 },
