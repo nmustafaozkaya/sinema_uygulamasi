@@ -77,13 +77,11 @@ class _CinemaSelectState extends State<CinemaSelect> {
             return;
           }
 
-          // Unique cinema'ları topla
           final Map<int, Map<String, dynamic>> uniqueCinemas = {};
           final Set<String> cityNames = {};
 
           for (final showtime in showtimesList) {
             try {
-              // Null kontrollerini daha detaylı yap
               if (showtime == null ||
                   showtime['hall'] == null ||
                   showtime['hall']['cinema'] == null) {
@@ -98,9 +96,7 @@ class _CinemaSelectState extends State<CinemaSelect> {
               if (cinemaId == null) continue;
 
               if (!uniqueCinemas.containsKey(cinemaId)) {
-                // City bilgisini düzelt
                 if (cinemaData['city_id'] != null) {
-                  // Eğer city_id varsa ama city objesi yoksa, varsayılan city objesi oluştur
                   if (cinemaData['city'] == null) {
                     cinemaData['city'] = {
                       'id': cinemaData['city_id'],
@@ -111,13 +107,11 @@ class _CinemaSelectState extends State<CinemaSelect> {
 
                 uniqueCinemas[cinemaId] = cinemaData;
 
-                // City name'i topla
                 final cityName =
                     cinemaData['city']?['name'] ?? 'Bilinmeyen Şehir';
                 cityNames.add(cityName);
               }
             } catch (e) {
-              // Tek bir showtime'da hata varsa diğerlerine devam et
               print('Showtime parse hatası: $e');
               continue;
             }
@@ -175,8 +169,6 @@ class _CinemaSelectState extends State<CinemaSelect> {
         _error = null;
       });
 
-      // Tüm sinemalar için API endpoint'i varsa kullan
-      // Yoksa movie_id olmadan çağır
       final uri = Uri.parse(ApiConnection.showtimes);
       final response = await http.get(uri);
 
@@ -184,7 +176,6 @@ class _CinemaSelectState extends State<CinemaSelect> {
         final Map<String, dynamic> jsonResponse = json.decode(response.body);
 
         if (jsonResponse['success'] == true && jsonResponse['data'] != null) {
-          // fetchCinemasForMovie ile aynı mantık
           await _processCinemaData(jsonResponse['data']);
         } else {
           throw Exception(
@@ -221,7 +212,6 @@ class _CinemaSelectState extends State<CinemaSelect> {
       return;
     }
 
-    // Cinema processing logic'i aynı
     final Map<int, Map<String, dynamic>> uniqueCinemas = {};
     final Set<String> cityNames = {};
 
@@ -477,7 +467,7 @@ class _CinemaSelectState extends State<CinemaSelect> {
                               child: ListTile(
                                 onTap: () {
                                   if (widget.currentMovie2 != null) {
-                                    Navigator.push(
+                                    Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => ShowtimesScreen(

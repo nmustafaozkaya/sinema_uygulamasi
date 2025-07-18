@@ -26,4 +26,5 @@ class ApiConnection {
 
   static String taxes = "$hostConnection/taxes";
   static String buyTicket = "$hostConnection/tickets";
+  static String myTickets = '$hostConnection/my-tickets';
 }

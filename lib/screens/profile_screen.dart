@@ -209,8 +209,8 @@ class ProfileScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const MyTicketScreen(),
-                  ), // const ekledik
+                    builder: (context) => const MyTicketsPage(),
+                  ),
                 );
               },
             ),
