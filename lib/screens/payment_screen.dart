@@ -179,7 +179,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
-            builder: (_) => HomePage(currentUser: currentUser!),
+            builder: (_) =>
+                HomePage(currentUser: currentUser!, initialIndex: 3),
           ),
           (route) => false,
         );

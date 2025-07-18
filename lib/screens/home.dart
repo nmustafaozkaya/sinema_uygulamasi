@@ -9,31 +9,37 @@ import 'package:sinema_uygulamasi/screens/home_screen.dart';
 
 class HomePage extends StatefulWidget {
   final User currentUser;
-
-  const HomePage({super.key, required this.currentUser});
+  final int initialIndex;
+  const HomePage({super.key, required this.currentUser, this.initialIndex = 0});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
-int aktifOge = 0;
-
 Widget gecerliSayfa(int aktif, User user) {
   switch (aktif) {
     case 0:
-      return HomeScreen();
+      return const HomeScreen();
     case 1:
-      return moviesScreen(isComingSoon: false);
+      return const moviesScreen(isComingSoon: false);
     case 2:
-      return CinemaScreen();
+      return const CinemaScreen();
     case 3:
       return ProfileScreen(currentUser: user);
     default:
-      return HomeScreen();
+      return const HomeScreen();
   }
 }
 
 class _HomePageState extends State<HomePage> {
+  late int aktifOge;
+
+  @override
+  void initState() {
+    super.initState();
+    aktifOge = widget.initialIndex;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
