@@ -1,1 +1,0 @@
- /Users/melikeiremozkaya/Documents/GitHub/sinema_uygulamasi/.dart_tool/flutter_build/50d25fcd0ae2c9a5612b404b106415e3/dart_build_result.json: 
