@@ -1,0 +1,12 @@
+# Flutter ve Dart yapıtları
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.vs_code/
+build/
+*.iml
+*.lock
+.gradle/
+.idea/
+.DS_Store
