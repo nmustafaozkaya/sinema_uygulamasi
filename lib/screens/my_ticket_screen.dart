@@ -225,7 +225,7 @@ class _MyTicketsPageState extends State<MyTicketsPage> {
 class TicketCard extends StatelessWidget {
   final Ticket ticket;
 
-  const TicketCard({Key? key, required this.ticket}) : super(key: key);
+  const TicketCard({super.key, required this.ticket});
 
   @override
   Widget build(BuildContext context) {

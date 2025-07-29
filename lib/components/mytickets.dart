@@ -1,5 +1,3 @@
-// models/ticket_models.dart
-
 class MyTicketsResponse {
   final bool success;
   final TicketData data;
@@ -171,7 +169,7 @@ class Movie {
       releaseDate: json['release_date'],
       genre: json['genre'],
       posterUrl: json['poster_url'],
-      imdbRating: json['imdb_raiting'], // API'de typo var
+      imdbRating: json['imdb_raiting'],
       status: json['status'],
     );
   }
