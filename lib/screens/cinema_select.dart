@@ -58,7 +58,6 @@ class _CinemaSelectState extends State<CinemaSelect> {
         if (jsonResponse['success'] == true && jsonResponse['data'] != null) {
           final data = jsonResponse['data'];
 
-          // API response'unu daha güvenli şekilde parse et
           List<dynamic> showtimesList = [];
 
           if (data is Map && data.containsKey('data')) {
